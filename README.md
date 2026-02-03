@@ -37,7 +37,7 @@ EOF
 ```bash
 cd ~/.config/home-manager
 nix flake update
-nix run home-manager -- switch --flake ".#tnd"
+nix run home-manager -- switch --flake ".#linux"
 ```
 
 ### 4. 新しいシェルを起動
@@ -89,7 +89,7 @@ home.homeDirectory = "/Users/tnd";  # /home/tnd から変更
 適用：
 
 ```bash
-nix run home-manager -- switch --flake .#tnd@darwin
+nix run home-manager -- switch --flake .#macos
 ```
 
 ## トラブルシューティング
