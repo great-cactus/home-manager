@@ -2,12 +2,7 @@
 
 Nix Home Managerを使ったzsh設定の管理リポジトリ.
 
-## 前提条件
-
-- Nix がインストール済み（Flakes有効）
-- WSL2 または Linux環境
-
-### Nixのインストール（未導入の場合）
+## Nixのインストール（未導入の場合）
 
 ```bash
 # 公式インストーラー
@@ -42,7 +37,7 @@ EOF
 ```bash
 cd ~/.config/home-manager
 nix flake update
-nix run home-manager -- switch --flake .#tnd
+nix run home-manager -- switch --flake ".#tnd"
 ```
 
 ### 4. 新しいシェルを起動
@@ -82,38 +77,6 @@ hms
         ├── aliases.nix    # エイリアス定義
         └── functions.nix  # カスタム関数
 ```
-
-## カスタマイズ
-
-### エイリアスを追加
-
-`modules/zsh/aliases.nix` を編集：
-
-```nix
-programs.zsh.shellAliases = {
-  # 既存のエイリアス...
-  myalias = "my-command --flag";
-};
-```
-
-### 関数を追加
-
-`modules/zsh/functions.nix` を編集：
-
-```nix
-programs.zsh.initExtra = lib.mkAfter ''
-  # 既存の関数...
-
-  myfunc() {
-    echo "Hello, $1"
-  }
-'';
-```
-
-### 環境変数を追加
-
-- **静的な値**: `home.nix` の `home.sessionVariables` に追加
-- **動的な値**: `~/.env` に追加（import-env.shで読み込み）
 
 ## macOSへの移行
 
