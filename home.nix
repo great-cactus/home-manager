@@ -19,6 +19,7 @@
     cargo
     deno
     nodejs_24
+    ripgrep
   ];
 
   # import-env.sh を ~/.local/bin に配置
