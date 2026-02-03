@@ -11,6 +11,15 @@
     ./modules/zsh
   ];
 
+  home.packages = with pkgs; [
+    gh
+    uv
+    fzf
+    cargo
+    deno
+    nodejs_24
+  ];
+
   # import-env.sh を ~/.local/bin に配置
   home.file.".local/bin/import-env.sh" = {
     source = ./scripts/import-env.sh;

@@ -27,14 +27,13 @@
 
     initContent = lib.mkMerge [
       (lib.mkBefore ''
-        # ~/.env から環境変数を読み込み (PROMPT_COLOR, WIN_DEVICE等)
+        # ~/.env から環境変数を読み込み
         [ -f ~/.local/bin/import-env.sh ] && . ~/.local/bin/import-env.sh ~/.env
       '')
       ''
         setopt extendedglob nomatch correct no_beep appendhistory
 
         autoload -U colors; colors
-        # PROMPT_COLOR, WIN_DEVICE は import-env.sh で .env から読み込み
         PROMPT="%F{$PROMPT_COLOR}%n@''${WIN_DEVICE}%f:%~
 >>"
 
