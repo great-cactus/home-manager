@@ -9,6 +9,7 @@
 
   imports = [
     ./modules/zsh
+    ./modules/neovim
   ];
 
   home.packages = with pkgs; [
