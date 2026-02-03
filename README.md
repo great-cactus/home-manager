@@ -1,6 +1,6 @@
 # Home Manager Configuration
 
-Nix Home Managerを使ったzsh設定の管理リポジトリ.
+Nix Home Managerを使ったzsh/neovim設定の管理リポジトリ.
 
 ## Nixのインストール（未導入の場合）
 
@@ -40,7 +40,20 @@ nix flake update
 nix run home-manager -- switch --flake ".#linux"
 ```
 
-### 4. 新しいシェルを起動
+### 4. Neovim（dein.vim）のセットアップ
+
+```bash
+# dein.vimのインストール
+git clone https://github.com/Shougo/dein.vim ~/.cache/dein/repos/github.com/Shougo/dein.vim
+
+# tomlファイルの配置（既存の設定がある場合）
+cp /path/to/your/dein.toml ~/.cache/dein/
+cp /path/to/your/dein_lazy.toml ~/.cache/dein/
+```
+
+初回起動時にdeinが自動でプラグインをインストールする.
+
+### 5. 新しいシェルを起動
 
 ```bash
 exec zsh
@@ -72,10 +85,22 @@ hms
 ├── scripts/
 │   └── import-env.sh      # .envファイル読み込みスクリプト
 └── modules/
-    └── zsh/
-        ├── default.nix    # zsh本体設定
-        ├── aliases.nix    # エイリアス定義
-        └── functions.nix  # カスタム関数
+    ├── zsh/
+    │   ├── default.nix    # zsh本体設定
+    │   ├── aliases.nix    # エイリアス定義
+    │   └── functions.nix  # カスタム関数
+    └── neovim/
+        ├── default.nix    # neovim設定
+        └── init.lua       # Lua設定
+```
+
+### 外部依存（dein.vim）
+
+```
+~/.cache/dein/
+├── dein.toml              # 通常プラグイン定義
+├── dein_lazy.toml         # 遅延読み込みプラグイン定義
+└── repos/                 # プラグイン本体（自動生成）
 ```
 
 ## macOSへの移行
