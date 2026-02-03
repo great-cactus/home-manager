@@ -23,8 +23,8 @@
     mjob = "nohup python main.py &";
 
     # NAS
-    mnt = ''sudo mount -t cifs -o "username=admin,uid=1000,gid=1000,iocharset=utf8" ${NAS_PATH}/Public /mnt/nas'';
-    uGmnt = ''sudo mount -t cifs -o "username=admin,uid=1000,gid=1000,iocharset=utf8" ${NAS_PATH}/Microgravity_Experiment /mnt/uG'';
+    mnt = ''sudo mount -t cifs -o "username=admin,uid=1000,gid=1000,iocharset=utf8" ''${NAS_PATH}/Public /mnt/nas'';
+    uGmnt = ''sudo mount -t cifs -o "username=admin,uid=1000,gid=1000,iocharset=utf8" ''${NAS_PATH}/Microgravity_Experiment /mnt/uG'';
 
     # oneAPI
     Act1AIP = "source /opt/intel/oneapi/setvars.sh";
