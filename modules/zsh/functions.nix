@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 
 {
-  programs.zsh.initExtra = lib.mkAfter ''
+  programs.zsh.initContent = lib.mkAfter ''
     spsync() {
       rsync -ahvum --progress --include="*/" --include="$1" --exclude="*" "$2" "$3"
     }
