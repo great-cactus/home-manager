@@ -20,6 +20,7 @@
     deno
     nodejs_24
     ripgrep
+    trash-cli
   ];
 
   # import-env.sh を ~/.local/bin に配置

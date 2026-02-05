@@ -79,6 +79,11 @@
 
         # WSL
         export PULSE_SERVER=/mnt/wslg/PulseServer
+
+        # trash command
+        if which trash-put &>/dev/null; then
+          alias rm=trash-put
+        fi
       ''
     ];
   };
