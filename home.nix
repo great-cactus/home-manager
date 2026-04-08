@@ -10,6 +10,7 @@
   imports = [
     ./modules/zsh
     ./modules/neovim
+    ./modules/claude
   ];
 
   home.packages = with pkgs; [
