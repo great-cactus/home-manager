@@ -14,14 +14,14 @@
     ".claude/rules/security.md".source          = ./rules/security.md;
     ".claude/rules/testing.md".source           = ./rules/testing.md;
     # Rules from Obsidian Vault
-    ".claude/rules/communication.md".source     = ./rules/communication.md;
-    ".claude/rules/gtd.md".source               = ./rules/gtd.md;
-    ".claude/rules/tags.md".source              = ./rules/tags.md;
-    ".claude/rules/zettelkasten.md".source      = ./rules/zettelkasten.md;
+    ".claude/rules/obsidian-communication.md".source     = ./rules/obsidian-communication.md;
+    ".claude/rules/obsidian-gtd.md".source               = ./rules/obsidian-gtd.md;
+    ".claude/rules/obsidian-tags.md".source              = ./rules/obsidian-tags.md;
+    ".claude/rules/obsidian-zettelkasten.md".source      = ./rules/obsidian-zettelkasten.md;
 
     # Skills (new format only)
-    ".claude/skills/coding-standards/SKILL.md".source        = ./skills/coding-standards/SKILL.md;
-    ".claude/skills/smart-commit/SKILL.md".source            = ./skills/smart-commit/SKILL.md;
-    ".claude/skills/create-permanent-note/SKILL.md".source   = ./skills/create-permanent-note/SKILL.md;
+    ".claude/skills/coding-standards/SKILL.md".source                  = ./skills/coding-standards/SKILL.md;
+    ".claude/skills/smart-commit/SKILL.md".source                      = ./skills/smart-commit/SKILL.md;
+    ".claude/skills/obsidian-create-permanent-note/SKILL.md".source    = ./skills/obsidian-create-permanent-note/SKILL.md;
   };
 }
