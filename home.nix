@@ -1,8 +1,8 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, username, homeDirectory, ... }:
 
 {
-  home.username = "tnd";
-  home.homeDirectory = "/home/tnd";
+  home.username = username;
+  home.homeDirectory = homeDirectory;
   home.stateVersion = "24.11";
 
   programs.home-manager.enable = true;
@@ -21,6 +21,7 @@
     nodejs_24
     ripgrep
     trash-cli
+    llama-cpp
   ];
 
   # import-env.sh を ~/.local/bin に配置

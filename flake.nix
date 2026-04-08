@@ -24,10 +24,18 @@
         "linux" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           modules = [ ./home.nix ];
+          extraSpecialArgs = {
+            username = "tnd";
+            homeDirectory = "/home/tnd";
+          };
         };
         "macos" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.aarch64-darwin;
           modules = [ ./home.nix ];
+          extraSpecialArgs = {
+            username = "akiratsunoda";
+            homeDirectory = "/Users/akiratsunoda";
+          };
         };
       };
     };

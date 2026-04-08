@@ -35,10 +35,14 @@ EOF
 ### 3. 初回適用
 
 ```bash
-cd ~/.config/home-manager
-nix flake update
-nix run home-manager -- switch --flake ".#linux"
+# Linux
+nix run .#homeConfigurations.linux.activationPackage
+
+# macOS (Apple Silicon)
+nix run .#homeConfigurations.macos.activationPackage
 ```
+
+ユーザー名とホームディレクトリは `flake.nix` の `extraSpecialArgs` で環境ごとに定義されているため,`home.nix` の編集は不要.
 
 ### 4. Neovim（dein.vim）のセットアップ
 
@@ -64,22 +68,24 @@ exec zsh
 ### 設定を変更した後
 
 ```bash
-hms  # home-manager switch のエイリアス
+# Linux
+nix run .#homeConfigurations.linux.activationPackage
+
+# macOS
+nix run .#homeConfigurations.macos.activationPackage
 ```
 
 ### Flakeの依存関係を更新
 
 ```bash
-cd ~/.config/home-manager
 nix flake update
-hms
 ```
 
 ## ディレクトリ構造
 
 ```
-~/.config/home-manager/
-├── flake.nix              # Flake定義（依存関係）
+.
+├── flake.nix              # Flake定義（依存関係・環境別設定）
 ├── flake.lock             # バージョンロック（自動生成）
 ├── home.nix               # Home Manager設定のルート
 ├── scripts/
@@ -103,19 +109,16 @@ hms
 └── repos/                 # プラグイン本体（自動生成）
 ```
 
-## macOSへの移行
+## 環境別設定
 
-`home.nix` を編集：
+`flake.nix` で環境ごとにユーザー名とホームディレクトリを定義：
 
-```nix
-home.homeDirectory = "/Users/tnd";  # /home/tnd から変更
-```
+| 環境 | ユーザー名 | ホームディレクトリ |
+|------|-----------|-------------------|
+| linux | tnd | /home/tnd |
+| macos | akiratsunoda | /Users/akiratsunoda |
 
-適用：
-
-```bash
-nix run home-manager -- switch --flake .#macos
-```
+新しい環境を追加する場合は `flake.nix` の `homeConfigurations` に設定を追加する.
 
 ## トラブルシューティング
 
@@ -124,6 +127,15 @@ nix run home-manager -- switch --flake .#macos
 ```bash
 mkdir -p ~/.config/nix
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+```
+
+### "Existing file would be clobbered" エラー
+
+既存の設定ファイル（`.zshrc`等）が競合している場合,バックアップしてから再実行：
+
+```bash
+mv ~/.zshrc ~/.zshrc.backup
+nix run .#homeConfigurations.macos.activationPackage
 ```
 
 ## 参考リンク
