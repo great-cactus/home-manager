@@ -1225,8 +1225,8 @@ repo = 'lukas-reineke/indent-blankline.nvim'
 merged = '0'
 on_event = 'BufReadPost'
 lua_source = '''
-vim.api.nvim_set_hl(0, 'IblIndent', { fg = '#3a3a3a', nocombine = true })
-vim.api.nvim_set_hl(0, 'IblScope', { fg = '#3a3a3a', nocombine = true })
+vim.api.nvim_set_hl(0, 'IblIndent', { fg = '#c8c8c8', nocombine = true })
+vim.api.nvim_set_hl(0, 'IblScope', { fg = '#a0a0a0', nocombine = true })
 require('ibl').setup({
   indent = { highlight = 'IblIndent' },
   scope = { highlight = 'IblScope' },
