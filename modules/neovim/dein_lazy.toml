@@ -476,11 +476,11 @@ vim.api.nvim_create_autocmd('LspAttach', {
     map('x', '<leader>ca', vim.lsp.buf.code_action)
 
     -- Formatting
-    if client.supports_method('textDocument/formatting') then
+    if client:supports_method('textDocument/formatting') then
       map('n', 'gf', function() vim.lsp.buf.format({ async = true }) end)
     end
 
-    if client.supports_method('textDocument/rangeFormatting') then
+    if client:supports_method('textDocument/rangeFormatting') then
       map('x', 'gf', function() vim.lsp.buf.format({ async = true }) end)
     end
 
@@ -494,7 +494,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     map('n', '<leader>q', vim.diagnostic.setloclist)
 
     -- Document highlight
-    if client.supports_method('textDocument/documentHighlight') then
+    if client:supports_method('textDocument/documentHighlight') then
       local highlight_group = vim.api.nvim_create_augroup('lsp_document_highlight_' .. bufnr, { clear = true })
 
       vim.api.nvim_create_autocmd({'CursorHold', 'CursorHoldI'}, {

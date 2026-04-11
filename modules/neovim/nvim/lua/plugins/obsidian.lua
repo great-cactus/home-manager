@@ -173,7 +173,7 @@ local function append_to_daily_note(input)
 
   -- Create daily note if it doesn't exist
   if vim.fn.filereadable(daily_note_path) == 0 then
-    vim.cmd("ObsidianToday")
+    vim.cmd("Obsidian today")
     vim.cmd("write")
     vim.cmd("bdelete")
   end
@@ -248,7 +248,7 @@ local function open_daily_note()
   local daily_note_path = obsidian_path .. "/Output/DailyNotes/" .. today .. ".md"
 
   if vim.fn.filereadable(daily_note_path) == 0 then
-    vim.cmd("ObsidianToday")
+    vim.cmd("Obsidian today")
     vim.cmd("write")
     vim.cmd("bdelete")
   end
