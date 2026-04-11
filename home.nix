@@ -37,4 +37,11 @@
     LC_ALL = "en_US.UTF-8";
     LANG = "ja_JP.UTF-8";
   };
+
+  # WSLg が PulseAudio を提供するため、systemd の pulseaudio サービスをマスクする
+  home.activation.maskPulseaudioForWSLg = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    if [ -e /mnt/wslg ]; then
+      $DRY_RUN_CMD systemctl --user mask pulseaudio.service pulseaudio.socket 2>/dev/null || true
+    fi
+  '';
 }
