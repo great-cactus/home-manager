@@ -1,0 +1,43 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usetheme{SimplePlus}
+%\usefonttheme{professionalfonts}
+%\usepackage{fontspec}
+%\usefonttheme{serif}
+%\usepackage[T1]{fontenc}
+%\usepackage{lmodern}
+%\usepackage{unicode-math}
+\usepackage{latexsym}
+
+\usepackage{amsfonts,amsmath,amssymb}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{makecell}
+\usepackage{mhchem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{appendixnumberbeamer}
+
+\newenvironment{roundbox}[2][yellow!50]{
+  \setbeamercolor{rdbx}{fg=black, bg=#1}
+  \begin{beamercolorbox}[sep=0.5em, wd=#2, rounded=true]{rdbx}
+  }{
+  \end{beamercolorbox}
+}
+
+\setbeamertemplate{footline}[frame number]
+
+\begin{document}
+\title{Title}
+\author{Akira Tsunoda}
+\institute{Institute of Fluid Science, Tohoku University}
+\date{\today}
+
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}
+    \frametitle{Title}
+    Content
+\end{frame}
+\end{document}

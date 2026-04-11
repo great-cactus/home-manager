@@ -1,0 +1,1479 @@
+[[plugins]]
+repo = 'mechatroner/rainbow_csv'
+on_ft = 'csv'
+
+[[plugins]]
+repo = 'preservim/nerdtree'
+hook_add = '''
+  nnoremap <silent> <leader>n :NERDTreeToggle<CR>
+'''
+
+[[plugins]]
+repo = 'nvim-tree/nvim-web-devicons'
+
+# [[plugins]]
+# repo = 'hpjansson/chafa'
+# build = './autogen.sh && make && sudo make install'
+
+[[plugins]]
+repo = 'atanunq/viu'
+build = 'cargo install --path .'
+
+[[plugins]]
+repo = 'jstkdng/ueberzugpp'
+
+[[plugins]]
+repo = 'junegunn/fzf'
+build = './install --bin'
+frozen = '1'
+merged = '0'
+
+[[plugins]]
+repo = 'ibhagwan/fzf-lua'
+# depends = ['fzf', 'nvim-web-devicons', 'chafa', 'viu', 'ueberzugpp']
+depends = ['fzf', 'nvim-web-devicons', 'viu', 'ueberzugpp']
+on_map = {n = [
+    '<leader>ff',
+    '<leader>fg',
+    '<leader>fG',
+    '<leader>fb',
+    '<leader>fh',
+    '<leader>fr',
+]}
+lua_source = '''
+local fzf = require('fzf-lua')
+vim.keymap.set('n', '<leader>ff', fzf.files)
+vim.keymap.set('n', '<leader>fg', fzf.git_files)
+vim.keymap.set('n', '<leader>fG', fzf.git_status)
+vim.keymap.set('n', '<leader>fb', fzf.buffers)
+vim.keymap.set('n', '<leader>fh', fzf.oldfiles)
+vim.keymap.set('n', '<leader>fr', fzf.live_grep)
+
+fzf.setup({
+  winopts = {
+    height = 0.8,
+    width = 0.8,
+    row = 0.35,
+    col = 0.5,
+    border = 'rounded'
+  },
+  fzf_opts = {
+    ['--layout'] = 'reverse'
+  },
+  files = {
+    fd_opts = '--color=never --type f --hidden --follow --exclude .git'
+  },
+  previewers = {
+    builtin = {
+      extensions = {
+        ["png"] = { "viu", "-b" },
+        ["jpg"] = { "ueberzug" },
+      },
+      ueberzug_scaler = "cover",
+    },
+  },
+})
+'''
+
+[[plugins]]
+repo = 'kylechui/nvim-surround'
+tag = '*'
+on_event = [ 'ModeChanged' ]
+lua_source = '''
+-- 1. グローバル設定 (基本機能の有効化)
+  require("nvim-surround").setup({})
+
+  -- 2. TeX用設定を行う関数を定義
+  local function setup_tex_surround()
+    require("nvim-surround").buffer_setup({
+      surrounds = {
+        ["l"] = { add = { "\\textbf{", "}" } },
+        ["i"] = { add = { "\\textit{", "}" } },
+        ["m"] = { add = { "\\mathrm{", "}" } },
+      },
+    })
+    -- キーマップ (buffer=true で現在のバッファのみ)
+    vim.keymap.set("x", "<C-b>", "Sl", { remap = true, buffer = true, desc = "Bold" })
+    vim.keymap.set("x", "<C-i>", "Si", { remap = true, buffer = true, desc = "Italic" })
+    vim.keymap.set("x", "<C-m>", "Sm", { remap = true, buffer = true, desc = "mathrm" })
+  end
+
+  local function setup_markdown_surround()
+    require("nvim-surround").buffer_setup({
+      surrounds = {
+        ["l"] = { add = { "**", "**" } },
+        ["i"] = { add = { "*", "*" } },
+      },
+    })
+    -- キーマップ (buffer=true で現在のバッファのみ)
+    vim.keymap.set("x", "<C-b>", "Sl", { remap = true, buffer = true, desc = "Bold" })
+    vim.keymap.set("x", "<C-i>", "Si", { remap = true, buffer = true, desc = "Italic" })
+  end
+
+  -- 3. 自動コマンドを作成 (これから開くファイル用)
+  vim.api.nvim_create_autocmd("FileType", {
+    pattern = "tex",
+    group = vim.api.nvim_create_augroup("MyTexSurround", { clear = true }),
+    callback = setup_tex_surround,
+  })
+
+  vim.api.nvim_create_autocmd("FileType", {
+    pattern = 'markdown',
+    group = vim.api.nvim_create_augroup("MyMarkdownSurround", { clear = true}),
+    callback = setup_markdown_surround,
+})
+
+  -- 4. 今開いているファイルがTeXなら即適用 (起動時のファイル用)
+  if vim.bo.filetype == "tex" then
+    setup_tex_surround()
+  end
+
+  if vim.bo.filetype == "markdown" then
+    setup_markdown_surround()
+  end
+'''
+
+[[plugins]]
+repo = 'iamcco/markdown-preview.nvim'
+on_map = { ictn = '<Plug>MarkdownPreview'}
+build = 'sh -c "cd app && npx --yes npm install"'
+hook_add = '''
+nnoremap <silent> <leader>md <Plug>MarkdownPreview
+'''
+
+#_____________________________________________________________ Start Copilot
+[[plugins]]
+repo = 'github/copilot.vim'
+on_cmd = 'Copilot'
+hook_source = '''
+  let g:copilot_node_command = expand( '~/.nodejs/bin/node' )
+  let g:copilot_no_maps = v:true
+  let g:copilot_hide_during_completion = 0
+  imap <silent><expr> <C-g> copilot#Accept()
+  imap <silent><expr> <C-n> copilot#Next()
+  imap <silent><expr> <C-p> copilot#Previous()
+
+  let g:copilot_filetypes = #{
+    \   gitcommit: v:true,
+    \   markdown: v:true,
+    \   python: v:true,
+    \   vim: v:true,
+    \}
+'''
+
+[[plugins]]
+repo = 'nvim-lua/plenary.nvim'
+
+[[plugins]]
+repo = 'olimorris/codecompanion.nvim'
+depends = ['plenary.nvim', 'copilot.vim']
+on_cmd = ['CodeCompanion', 'CodeCompanionChat', 'CodeCompanionActions']
+hook_add = '''
+nnoremap <leader>cc :CodeCompanionChat<CR>
+nnoremap <leader>ca :CodeCompanionActions<CR>
+'''
+lua_source = '''
+require('plugins.codecompanion')
+'''
+#_____________________________________________________________ End Copilot
+
+[[plugins]]
+repo = 'vim-denops/denops.vim'
+hook_source = '''
+let g:denops#server#deno_args = [
+  \    '-q',
+  \    '-A',
+  \    '--unstable-kv',
+  \]
+'''
+
+[[plugins]]
+repo = 'skk-dev/dict'
+
+[[plugins]]
+repo = 'vim-skk/skkeleton'
+depends = ['denops.vim', 'dict']
+denops_wait = false
+on_map = { ictn = '<Plug>(skkeleton-'}
+hook_add = '''
+inoremap <C-j>  <Plug>(skkeleton-toggle)
+cnoremap <C-j>  <Plug>(skkeleton-toggle)
+tnoremap <C-j>  <Plug>(skkeleton-toggle)
+nnoremap <C-j> i<Plug>(skkeleton-enable)
+'''
+hook_source = '''
+call skkeleton#config(#{
+  \globalDictionaries    : ['~/.cache/dein/repos/github.com/skk-dev/dict/SKK-JISYO.L'->expand()],
+  \databasePath          : '~/.cache/skk/skkeleton.db'->expand(),
+  \completionRankFile    : '~/.skk/rank.json'->expand(),
+  \sources               : ['deno_kv', 'google_japanese_input'],
+  \registerConvertResult : v:true,
+  \eggLikeNewline        : v:true,
+  \})
+
+autocmd MyAutoCmd User skkeleton-enable-pre call s:skkeleton_pre()
+function! s:skkeleton_pre() abort
+  " Overwrite sources
+  let s:prev_buffer_config = ddc#custom#get_buffer()
+  call ddc#custom#patch_buffer({
+  \    'sources'      : ['around', 'skkeleton'],
+  \    'sourceOptions':{
+  \        '_' : {
+  \            'keywordPattern': '[ァ-ヮア-ンー]+',
+  \              },
+  \                    },
+  \})
+endfunction
+
+autocmd MyAutoCmd User skkeleton-disable-pre call s:skkeleton_post()
+function! s:skkeleton_post() abort
+  if 's:prev_buffer_config'->exists()
+    " Restore sources
+    call ddc#custom#set_buffer(s:prev_buffer_config)
+  endif
+endfunction
+
+call skkeleton#initialize()
+'''
+
+[[plugins]]
+repo = 'delphinus/skkeleton_indicator.nvim'
+on_source = 'skkeleton'
+lua_source = '''
+require('skkeleton_indicator').setup{}
+'''
+
+#_____________________________________________________________ Start ddc
+[[plugins]]
+repo = 'Shougo/ddc.vim'
+on_event = 'InsertEnter'
+depends = ['denops.vim']
+hook_source = '''
+    call ddc#custom#patch_global('ui', 'pum')
+    call ddc#custom#patch_global('sources', [
+    \                                        'lsp',
+    \                                        'file',
+    \                                        'around',
+    \                                        'buffer',
+    \                                        'rg',
+    \                                        'dictionary',
+    \                                        ])
+    call ddc#custom#patch_global('sourceOptions', {
+    \   '_'        : {
+    \       'matchers'              : ['matcher_fuzzy'],
+    \       'sorters'               : ['sorter_fuzzy'],
+    \       'converters'            : ['converter_fuzzy'],
+    \                },
+    \  'lsp' : {
+    \       'isVolatile'            : v:true,
+    \       'mark'                  : '[LSP]',
+    \       'forceCompletionPattern': '\.|:|->|"\w+/*'
+    \                },
+    \  'around'    : {
+    \       'mark'                  : '[Around]'
+    \                },
+    \  'buffer'    : {
+    \       'mark'                  : '[Buf]'
+    \                },
+    \  'rg'    : {
+    \       'mark'                  : '[ripgrep]'
+    \                },
+    \  'dictionary': {
+    \       'mark'                  : '[Dict]'
+    \                },
+    \  'file'      : {
+    \       'mark'                  : '[File]',
+    \       'isVolatile'            : v:true,
+    \       'forceCompletionPattern': '\S/\S*'
+    \                },
+    \ })
+
+    call ddc#custom#patch_global('sourceParams', {
+    \  'dictionary': {
+    \       'dictPaths'             : ['/usr/share/dict/american-english'],
+    \       'smartCase'             : v:true,
+    \       'showMenu'              : v:false,
+    \                },
+    \  'lsp' : {
+    \       'snippetEngine': denops#callback#register({
+    \           body -> luasnip#anonymous(body)
+    \       }),
+    \       'enableResolveItem': v:true,
+    \       'enableAdditionalTextEdit': v:true,
+    \       'confirmBehavior': 'replace',
+    \     },
+    \ })
+
+    call ddc#enable()
+
+    inoremap <silent><expr> <TAB>
+        \ pum#visible() ? '<Cmd>call pum#map#insert_relative(+1)<CR>' :
+        \ (col('.') <= 1 <Bar><Bar> getline('.')[col('.') - 2] =~# '\s') ?
+        \'<TAB>' : ddc#map#manual_complete()
+    inoremap <S-Tab> <Cmd>call pum#map#insert_relative(-1)<CR>
+    inoremap <C-n>   <Cmd>call pum#map#insert_relative(+1)<CR>
+    inoremap <C-p>   <Cmd>call pum#map#insert_relative(-1)<CR>
+    inoremap <C-y>   <Cmd>call pum#map#confirm()<CR>
+    inoremap <C-e>   <Cmd>call pum#map#cancel()<CR>
+'''
+
+[[plugins]]
+repo = 'Shougo/pum.vim'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'shutils/ddc-source-obsidian'
+on_source = 'ddc.vim'
+on_if = 'expand("%:p") =~# "^" . expand("$OBSIDIAN_PATH") . ".*\\.md$"'
+hook_source = '''
+call ddc#custom#patch_filetype('markdown', #{
+  \ sources: [ 'obsidian_tag', 'obsidian_link' ],
+  \ sourceParams: #{
+  \   obsidian_tag: #{ vault: expand('$OBSIDIAN_PATH') },
+  \   obsidian_link: #{ vault: expand('$OBSIDIAN_PATH') },
+  \},
+  \ sourceOptions: #{
+  \  obsidian_tag: #{
+  \    mark: '[OBS-TAG]',
+  \  },
+  \  obsidian_link: #{
+  \    mark: '[OBS-LINK]',
+  \  },
+  \},
+\})
+'''
+
+[[plugins]]
+repo = 'Shougo/ddc-ui-pum'
+on_source = 'ddc.vim'
+hook_add = '''
+    call pum#set_option({
+    \            'max_width': 50,
+    \           'max_height': 10,
+    \        'preview_width': 50,
+    \       'preview_height': 10,
+    \ })
+'''
+[[plugins]]
+repo = 'Shougo/ddc-buffer'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'Shougo/ddc-rg'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'tani/ddc-fuzzy'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'Shougo/ddc-around'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'Shougo/ddc-source-around'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'LumaKernel/ddc-file'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'matsui54/ddc-dictionary'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'Shougo/ddc-source-lsp'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'uga-rosa/ddc-source-lsp-setup'
+on_source = 'ddc.vim'
+
+[[plugins]]
+repo = 'g-ctus/ddc-source-luasnip'
+on_source = 'ddc.vim'
+depends = ['ddc-source-lsp-setup']
+lua_post_source = '''
+require("ddc_source_lsp_setup").setup()
+'''
+
+#_____________________________________________________________ End ddc
+
+#_____________________________________________________________ Start treesitter
+[[plugins]]
+repo = '~/.cache/dein/_generated/nvim-treesitter'
+merged = '0'
+on_event = 'BufReadPost'
+
+[[plugins]]
+repo = 'nvim-treesitter/nvim-treesitter-context'
+on_cmd = ['TSContextToggle', 'TSContextEnable']
+hook_add = '''
+nnoremap <silent> <leader>tct :TSContextToggle<CR>
+'''
+lua_source = '''
+require'treesitter-context'.setup{
+  enable = true, -- Enable this plugin
+  multiwindow = false, -- Enable multiwindow support.
+  max_lines = 5, -- How many lines the window should span.
+  min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+  line_numbers = true,
+  multiline_threshold = 20, -- Maximum number of lines to show for a single context
+  trim_scope = 'outer', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+  mode = 'cursor',  -- Line used to calculate context. Choices: 'cursor', 'topline'
+  -- Separator between context and content. Should be a single character string, like '-'.
+  -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+  separator = nil,
+  zindex = 20, -- The Z-index of the context window
+  on_attach = function(buf)
+    vim.notify("treesitter-context enabled", vim.log.levels.INFO, {})
+    return true
+  end,
+  on_detach = function(buf)
+    vim.notify("treesitter-context disabled", vim.log.levels.INFO, {})
+    return true
+  end,
+}
+'''
+#_____________________________________________________________ End treesitter
+
+#_____________________________________________________________ Start LSP with mason.nvim and builtin LSP
+
+[[plugins]]
+repo = 'neovim/nvim-lspconfig'
+on_event = ['BufReadPre', 'BufNewFile']
+depends = ['mason.nvim']
+merged = '0'
+lua_source = '''
+-- LSP keymaps via LspAttach autocmd
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(event)
+    local bufnr = event.buf
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+
+    local function map(mode, lhs, rhs)
+      vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, noremap = true, silent = true })
+    end
+
+    -- Navigation
+    map('n', 'gd', vim.lsp.buf.definition)
+    map('n', 'gD', vim.lsp.buf.declaration)
+    map('n', 'gr', vim.lsp.buf.references)
+    map('n', 'gI', vim.lsp.buf.implementation)
+    map('n', 'gy', vim.lsp.buf.type_definition)
+
+    -- Documentation
+    map('n', 'K', vim.lsp.buf.hover)
+    map('n', 'gK', vim.lsp.buf.signature_help)
+    -- map('i', '<C-k>', vim.lsp.buf.signature_help)
+
+    -- Rename
+    map('n', '<F2>', vim.lsp.buf.rename)
+
+    -- Code actions
+    map('n', '<leader>ca', vim.lsp.buf.code_action)
+    map('x', '<leader>ca', vim.lsp.buf.code_action)
+
+    -- Formatting
+    if client.supports_method('textDocument/formatting') then
+      map('n', 'gf', function() vim.lsp.buf.format({ async = true }) end)
+    end
+
+    if client.supports_method('textDocument/rangeFormatting') then
+      map('x', 'gf', function() vim.lsp.buf.format({ async = true }) end)
+    end
+
+    -- Document symbols
+    map('n', 'gO', vim.lsp.buf.document_symbol)
+
+    -- Diagnostics
+    map('n', '[d', vim.diagnostic.goto_prev)
+    map('n', ']d', vim.diagnostic.goto_next)
+    map('n', '<leader>e', vim.diagnostic.open_float)
+    map('n', '<leader>q', vim.diagnostic.setloclist)
+
+    -- Document highlight
+    if client.supports_method('textDocument/documentHighlight') then
+      local highlight_group = vim.api.nvim_create_augroup('lsp_document_highlight_' .. bufnr, { clear = true })
+
+      vim.api.nvim_create_autocmd({'CursorHold', 'CursorHoldI'}, {
+        buffer = bufnr,
+        group = highlight_group,
+        callback = vim.lsp.buf.document_highlight,
+      })
+
+      vim.api.nvim_create_autocmd({'CursorMoved', 'CursorMovedI'}, {
+        buffer = bufnr,
+        group = highlight_group,
+        callback = vim.lsp.buf.clear_references,
+      })
+    end
+  end,
+})
+
+-- Configure diagnostics
+vim.diagnostic.config({
+  virtual_text = false,
+  virtual_line = false,
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = '󰅚 ',
+      [vim.diagnostic.severity.WARN] = '󰀪 ',
+      [vim.diagnostic.severity.HINT] = '󰌶',
+      [vim.diagnostic.severity.INFO] = ' ',
+    },
+  },
+  update_in_insert = false,
+  underline = true,
+  severity_sort = true,
+  float = {
+    focusable = false,
+    style = "minimal",
+    border = "rounded",
+    source = "always",
+    header = "",
+    prefix = "",
+  },
+})
+
+vim.api.nvim_create_autocmd("CursorHold", {
+  callback = function()
+    vim.diagnostic.open_float({
+      focusable = false,
+      close_events = {
+        "BufLeave",
+        "CursorMoved",
+        "InsertEnter",
+        "FocusLost"
+      },
+      border = 'rounded',
+      style = "minimal",
+      source = 'always'
+    })
+  end
+})
+vim.opt.updatetime = 250
+
+vim.lsp.log.set_level("OFF")
+require('lsp')
+'''
+
+[[plugins]]
+repo = 'williamboman/mason.nvim'
+merge = '0'
+lua_source = '''
+require('mason').setup({
+  ui = {
+    border = 'rounded',
+    width = 0.8,
+    height = 0.8,
+  },
+  log_level = vim.log.levels.INFO,
+  max_concurrent_installers = 5,
+})
+'''
+
+[[plugins]]
+repo = 'williamboman/mason-lspconfig.nvim'
+depends = ['nvim-lspconfig', 'mason.nvim']
+lua_source = '''
+require('mason-lspconfig').setup({
+  ensure_installed = {
+    'pylsp',
+    'texlab',
+    'ltex',
+    'efm',
+    'lua_ls',
+  },
+  automatic_installation = true,
+})
+'''
+#_____________________________________________________________ End LSP with mason.nvim and builtin LSP
+
+[[plugins]]
+repo = 'junegunn/vim-easy-align'
+on_map = '<Plug>(EasyAlign)'
+hook_add = '''
+xnoremap <silent>ga <Plug>(EasyAlign)
+'''
+
+[[plugins]]
+repo = 'easymotion/vim-easymotion'
+on_cmd = '<Plug>(easymotion-)'
+hook_add = '''
+let g:EasyMotion_do_mapping = 0 "Disable default mappings
+let g:EasyMotion_smartcase = 1 "Turn on case insensitive feature
+'''
+
+#_____________________________________________________________ Start vim-quickrun
+[[plugins]]
+repo = 'Shougo/vimproc.vim'
+build = 'make'
+on_source = 'vim-quickrun'
+
+[[plugins]]
+repo = 'thinca/vim-quickrun'
+on_cmd = '<F5>'
+hook_add = '''
+  nnoremap <silent> <F5> :QuickRun<CR>
+'''
+hook_source = '''
+    " Kill the process by <Ctrl-C>
+    function! s:sweep_and_message()
+        call quickrun#sweep_sessions()
+        echo "Killed"
+        return ""
+    endfunction
+    nnoremap <expr><silent> <C-c> quickrun#is_running() ? <SID>sweep_and_message(): "\<C-c>"
+
+    " Custom outputter to use vim.notify
+    let s:outputter = {
+    \   "name" : "notify",
+    \   "kind" : "outputter",
+    \}
+
+    function! s:outputter.init(session)
+    endfunction
+
+    function! s:outputter.output(data, session)
+        " エラー出力かどうかを確認
+        let l:is_error = has_key(a:session, 'exit_code') && a:session.exit_code != 0
+
+        " ログレベルを設定
+        let l:log_level = l:is_error ? "error" : "info"
+
+        " vim.notify に送信
+        call v:lua.vim.notify(a:data, l:log_level, {"title": "QuickRun"})
+    endfunction
+
+    function! s:outputter.finish(session)
+    endfunction
+
+    call quickrun#module#register(s:outputter, 1)
+    unlet s:outputter
+
+    " Show an in progress animation
+    let s:hook = {
+    \   "name"         : "in_progress",
+    \   "kind"         : "hook",
+    \   "index_counter": 0,
+    \   "config"       : {
+    \       "enable": 0
+    \}
+    \}
+
+    function! s:hook.on_read(session, context)
+        let self.index_counter = -2
+    endfunction
+
+    function! s:hook.on_output(session, context)
+        let self.index_counter += 1
+        if self.index_counter < 0
+            return
+        endif
+        let anime_list = [
+       \   '⠋',
+       \   '⠙',
+       \   '⠹',
+       \   '⠸',
+       \   '⠼',
+       \   '⠴',
+       \   '⠦',
+       \   '⠧',
+       \   '⠇',
+       \   '⠏',
+       \]
+        echo anime_list[ self.index_counter % len(anime_list)]
+    endfunction
+
+    call quickrun#module#register(s:hook, 1)
+    unlet s:hook
+
+    " General setting
+    let g:quickrun_config = get(g:, 'quickrun_config', {})
+    let g:quickrun_config._ = {
+    \    'runner'                         : 'vimproc',
+    \    'runner/vimproc/updatetime'      : 60,
+    \    'outputter'                      : 'notify',
+    \    'outputter/error/success'        : 'buffer',
+    \    'outputter/error/error'          : 'quickfix',
+    \    'outputter/buffer/split'         : 'rightbelow 8sp',
+    \    'outputter/buffer/close_on_empty': 0,
+    \    'hook/in_progress/enable'        : 1,
+    \}
+
+    " For LaTeX
+    let g:quickrun_config['tex'] = {
+    \    'command'                : 'latexmk',
+    \    'outputter'              : 'error',
+    \    'outputter/error/success': 'quickfix',
+    \    'outputter/error/error'  : 'buffer',
+    \    'srcfile'                : expand("%"),
+    \    'cmdopt'                 : '',
+    \    'hook/sweep/files'       : [
+    \        '%S:p:r.aux',
+    \        '%S:p:r.bbl',
+    \        '%S:p:r.blg',
+    \        '%S:p:r.dvi',
+    \        '%S:p:r.fdb_latexmk',
+    \        '%S:p:r.fls',
+    \        '%S:p:r.log',
+    \        '%S:p:r.out',
+    \    ],
+    \    'exec'                   : '%c %o %a %s',
+    \}
+'''
+#_____________________________________________________________ End vim-quickrun
+
+[plugins.ftplugin]
+tex_plaintex_latex = '''
+"autocmd MyAutoCmd FileType tex call <SID>TeXKeymap()
+autocmd MyAutoCmd FileType tex
+  \ autocmd BufWritePre <buffer> call <SID>FixPunctuation()
+autocmd MyAutoCmd FileType tex call s:TEXKeymap()
+
+function! s:TEXKeymap() abort
+  inoremap \mr<SPACE> \mathrm{}<LEFT>
+endfunction
+function! s:FixPunctuation() abort
+  let l:pos = getpos('.')
+  " その他の句点を全角ピリオドに変換
+  silent! execute ':%s/[。]/．/g'
+  silent! execute ':%s/、/，/g'
+  silent! execute ':%s/\\\@<!\s\+$//'
+  setlocal modified
+  call setpos('.', l:pos)
+endfunction
+'''
+
+markdown = '''
+autocmd MyAutoCmd FileType markdown call s:MDKeymap()
+autocmd MyAutoCmd FileType markdown
+  \ autocmd BufWritePre <buffer> call s:FixPunctuation()
+
+function! s:MDKeymap() abort
+  inoremap \mr<SPACE> \mathrm{}<LEFT>
+endfunction
+function! s:FixPunctuation() abort
+  let l:pos = getpos('.')
+  silent! execute ':%s/。/./g'
+  silent! execute ':%s/、/,/g'
+  silent! execute ':%s/\\\@<!\s\+$//'
+  setlocal modified
+  call setpos('.', l:pos)
+endfunction
+
+autocmd MyAutoCmd FileType markdown syntax match htmlTagConceal /<\/\?[a-zA-Z][a-zA-Z0-9]*\%(\s[^>]*\)\?>/ conceal
+'''
+
+typst = '''
+autocmd MyAutoCmd FileType typst
+  \ autocmd BufWritePre <buffer> call s:FixPunctuation()
+
+function! s:FixPunctuation() abort
+  let l:pos = getpos('.')
+  silent! execute ':%s/。/．/g'
+  silent! execute ':%s/、/，/g'
+  silent! execute ':%s/\\\@<!\s\+$//'
+  setlocal modified
+  call setpos('.', l:pos)
+endfunction
+'''
+
+python = '''
+  set shiftwidth=4
+'''
+
+#_____________________________________________________________ Start snippets
+[[plugins]]
+repo = 'rafamadriz/friendly-snippets'
+
+[[plugins]]
+repo = 'L3MON4D3/LuaSnip'
+depends = ['friendly-snippets']
+on_event = 'InsertEnter'
+tag = 'v2.*'
+build = 'make install_jsregexp'
+lua_source = '''
+local luasnip = require("luasnip")
+
+-- Configuration
+luasnip.config.set_config({
+  history = true,
+  enable_autosnippets = false,
+})
+
+require('luasnip.loaders.from_vscode').lazy_load({
+  paths = {
+    vim.fn.expand('~/.config/nvim/snippets'),
+    vim.fn.expand('~/.cache/dein/repos/github.com/rafamadriz/friendly-snippets'),
+  },
+})
+
+vim.keymap.set('n', '<leader>es', require("luasnip.loaders").edit_snippet_files, { desc = "Edit snippets" })
+
+-- Basic key mapping for expansion
+vim.keymap.set({"i"}, "<C-K>", function() luasnip.expand() end)
+-- vim.keymap.set({"i", "s"}, "<C-p>", function() luasnip.jump( 1) end)
+-- vim.keymap.set({"i", "s"}, "<C-n>", function() luasnip.jump(-1) end)
+
+vim.keymap.set({"i", "s"}, "<C-E>", function()
+  if luasnip.choice_active() then
+      luasnip.change_choice(1)
+  end
+end)
+'''
+
+hook_post_source = '''
+    call ddc#custom#patch_buffer('sources', ['lsp', 'luasnip'])
+
+    call ddc#custom#patch_buffer('sourceParams', {
+    \  'lsp' : {
+    \       'snippetEngine': denops#callback#register({
+    \           body -> luasnip#anonymous(body)
+    \       }),
+    \       'enableResolveItem': v:true,
+    \       'enableAdditionalTextEdit': v:true,
+    \       'confirmBehavior': 'replace',
+    \     },
+    \ })
+
+    call ddc#custom#patch_buffer('sourceOptions', {
+    \    'luasnip': {
+    \        'mark': '[LS]',
+    \        'dup': v:false,
+    \    },
+    \})
+'''
+[[plugins]]
+repo = 'honza/vim-snippets'
+
+[[plugins]]
+repo = 'hrsh7th/vim-vsnip-integ'
+
+[[plugins]]
+repo = 'hrsh7th/vim-vsnip'
+#_____________________________________________________________ End snippets
+
+#_____________________________________________________________ Start snacks.nvim
+[[plugins]]
+repo = 'folke/snacks.nvim'
+on_ft = ['markdown', 'tex']
+lua_source = '''
+local obsidian_vault = vim.fn.expand("$OBSIDIAN_PATH")
+local attachments_dir = "Attachments"
+
+require("snacks").setup({
+  image = {
+    enabled = true,
+    convert = {
+      magick = {
+        pdf = { "-density", 300, "{src}[{page}]", "-background", "white", "-alpha", "remove", "-trim" },
+      },
+    },
+    doc = {
+      enabled = true,
+      inline = false,
+      float = true,
+      max_width = math.floor(vim.o.columns * 0.7),
+      max_height = math.floor(vim.o.lines * 0.8),
+    },
+    resolve = function(file, src)
+      local current_dir = vim.fn.fnamemodify(file, ":h")
+      local ext = vim.fn.fnamemodify(file, ":e")
+
+      -- For tex files, resolve relative path directly
+      if ext == "tex" then
+        local clean_src = src:gsub("^%./", "")
+        local path = current_dir .. "/" .. clean_src
+        if vim.fn.filereadable(path) == 1 then return path end
+        return nil
+      end
+
+      -- For markdown (Obsidian wikilinks)
+      local wikilink_match = src:match("^([^|]+)")
+      if wikilink_match then
+        wikilink_match = wikilink_match:gsub("^%./", "")
+
+        local paths = {
+          current_dir .. "/" .. wikilink_match,
+          current_dir .. "/" .. attachments_dir .. "/" .. wikilink_match,
+          obsidian_vault .. "/" .. attachments_dir .. "/" .. wikilink_match,
+          obsidian_vault .. "/" .. wikilink_match,
+        }
+        for _, path in ipairs(paths) do
+          if vim.fn.filereadable(path) == 1 then return path end
+        end
+      end
+      return nil
+    end,
+  },
+  bigfile = { enabled = false },
+  dashboard = { enabled = false },
+  explorer = { enabled = false },
+  indent = { enabled = false },
+  input = { enabled = false },
+  picker = { enabled = false },
+  notifier = { enabled = false },
+  quickfile = { enabled = false },
+  scope = { enabled = false },
+  scroll = { enabled = false },
+  statuscolumn = { enabled = false },
+  words = { enabled = false },
+})
+'''
+#_____________________________________________________________ End snacks.nvim
+
+#_____________________________________________________________ Start Obsidian
+[[plugins]]
+repo = 'obsidian-nvim/obsidian.nvim'
+on_event = ['BufRead', 'BufNewFile']
+on_if = 'expand("%:p") =~# "^" . expand("$OBSIDIAN_PATH") . ".*\\.md$"'
+on_map = {n = '<leader>od'}
+depends = ['plenary.nvim', 'fzf-lua', 'snacks.nvim']
+lua_source = '''
+require('plugins.obsidian')
+'''
+#_____________________________________________________________ End Obsidian
+
+#_____________________________________________________________ Start noice
+[[plugins]]
+repo = 'folke/noice.nvim'
+on_event = 'CmdlineEnter'
+depends = ['nui.nvim', 'nvim-notify', 'fzf-lua']
+lua_source = '''
+require("noice").setup({
+  lsp = {
+    progress = {
+      enabled = false,
+    },
+    -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+    override = {
+      ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+      ["vim.lsp.util.stylize_markdown"] = true,
+      ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+    },
+  },
+  -- you can enable a preset for easier configuration
+  presets = {
+    bottom_search = true, -- use a classic bottom cmdline for search
+    command_palette = true, -- position the cmdline and popupmenu together
+    long_message_to_split = true, -- long messages will be sent to a split
+    inc_rename = false, -- enables an input dialog for inc-rename.nvim
+    lsp_doc_border = false, -- add a border to hover docs and signature help
+  },
+  cmdline = {
+      enabled = true, -- enables the Noice cmdline UI
+      view = "cmdline_popup", -- view for rendering the cmdline. Change to `cmdline` to get a classic cmdline at the bottom
+      opts = {}, -- global options for the cmdline. See section on views
+      ---@type table<string, CmdlineFormat>
+      format = {
+        -- conceal: (default=true) This will hide the text in the cmdline that matches the pattern.
+        -- view: (default is cmdline view)
+        -- opts: any options passed to the view
+        -- icon_hl_group: optional hl_group for the icon
+        -- title: set to anything or empty string to hide
+        cmdline = { pattern = "^:", icon = "", lang = "vim" },
+        search_down = { kind = "search", pattern = "^/", icon = " ", lang = "regex" },
+        search_up = { kind = "search", pattern = "^%?", icon = " ", lang = "regex" },
+        filter = { pattern = "^:%s*!", icon = "$", lang = "bash" },
+        lua = { pattern = { "^:%s*lua%s+", "^:%s*lua%s*=%s*", "^:%s*=%s*" }, icon = "", lang = "lua" },
+        help = { pattern = "^:%s*he?l?p?%s+", icon = "󰋗" },
+        input = { view = "cmdline_input", icon = "󰥻 " }, -- Used by input()
+      },
+    },
+    notify = {
+        enabled = true,
+        view = "notify",
+    },
+})
+'''
+
+[[plugins]]
+repo = 'MunifTanjim/nui.nvim'
+
+[[plugins]]
+repo = 'rcarriga/nvim-notify'
+on_lua = 'notify'
+lua_source = '''
+vim.notify = require('notify')
+vim.notify.setup {
+  timeout = 3000,
+  max_height = function()
+    return math.floor(vim.o.lines * 075)
+  end,
+  max_width = function()
+    return math.floor(vim.o.columns * 0.60)
+  end,
+  level = 0,
+  render = 'default',
+  stages = "fade_in_slide_out",
+  on_open = function(win)
+    vim.api.nvim_win_set_config(win, { focusable = false })
+  end,
+}
+
+vim.keymap.set("n", "<leader>cf", function()
+require("notify").dismiss({ silent = true, pending = true })
+end, { desc = "Dismiss all notifications" })
+'''
+
+#_____________________________________________________________ End noice
+[[plugins]]
+repo = 'mattn/vim-sonictemplate'
+on_cmd = [ 'Template' ]
+hook_source = '''
+let g:sonictemplate_vim_template_dir = expand( '~/.config/nvim/templates' )
+'''
+
+[[plugins]]
+repo = 'folke/zen-mode.nvim'
+on_cmd = [ 'ZenMode' ]
+hook_add = '''
+nnoremap <silent> <leader>zm :ZenMode<CR>
+'''
+lua_source = '''
+require("zen-mode").setup {
+  window = {
+    backdrop = 0.95,
+    width = 0.5,
+    height = 1.0,
+    options = {
+      signcolumn = "no",
+      number = true,
+      relativenumber = true,
+      foldcolumn = "0",
+      list = false,
+    },
+  },
+  plugins = {
+    options = {
+      enabled = true,
+      ruler = false,
+      showcmd = false,
+    },
+  },
+}
+'''
+
+[[plugins]]
+repo = 'AndrewRadev/splitjoin.vim'
+on_cmd = ['SplitjoinJoin', 'SplitjoinSplit']
+hook_source = '''
+let g:splitjoin_python_brackets_on_separate_lines = 1
+'''
+hook_add = '''
+nnoremap <silent> <Leader>jj :SplitjoinJoin<cr>
+nnoremap <silent> <Leader>js :SplitjoinSplit<cr>
+'''
+
+[[plugins]]
+repo = 'great-cactus/read-text.vim'
+depends = ['denops.vim']
+on_map = { ictnv = '<Plug>(read-text-' }
+hook_source = '''
+let g:read_text_tts_provider = 'kokoro'
+let g:read_text_audio_command = 'mpv'
+let g:read_text_audio_args = ['--no-video', '--audio-samplerate=48000', '--ao=pulse', '--pulse-buffer=2000', '--pulse-latency-hacks=yes', '--quiet']
+
+let g:read_text_speaker_id = 0
+let g:read_text_speed_scale = 0.8
+let g:read_text_pitch_scale = 0.0
+let g:read_text_split_threshold = 20
+
+let g:read_text_voicevox_url = 'https://hideously-cheerful-swift.ngrok-free.app'
+
+let g:read_text_espeak_voice = 'en'
+let g:read_text_espeak_variant = 'f2'
+let g:read_text_espeak_command = 'espeak-ng'
+
+let g:read_text_melo_language = 'EN'
+let g:read_text_melo_speaker = 'EN-BR'
+let g:read_text_melo_device = 'auto'
+let g:read_text_melo_python = 'python3'
+let g:read_text_speed = 1.0
+
+let g:read_text_kokoro_lang = 'en-gb'
+let g:read_text_kokoro_voice = 'bf_isabella'
+let g:read_text_speed = 1.0
+
+let g:read_text_kokoro_model_path = '~/.local/share/kokoro-tts/kokoro-v1.0.onnx'
+let g:read_text_kokoro_voices_path = '~/.local/share/kokoro-tts/voices-v1.0.bin'
+'''
+hook_add = '''
+nmap <leader>rt <Plug>(read-text-from-cursor-async)
+vmap <leader>rt <Plug>(read-text-selection-async)
+nmap <leader>al <Plug>(read-text-line-async)
+nmap <leader>rp <Plug>(read-text-toggle-pause)
+nmap <leader>rs <Plug>(read-text-stop)
+'''
+
+[[plugins]]
+repo = 'm4xshen/autoclose.nvim'
+on_event = 'InsertEnter'
+lua_source = '''
+require('autoclose').setup({
+    options = {
+        disabled_filetypes = {"text"},
+        disable_when_touch = true,
+        pair_spaces = false,
+        auto_indent = true,
+        disable_command_mode = false,
+    },
+    keys = {
+        ["("] = { escape = false, close = true, pair = "()" },
+        ["（"] = { escape = false, close = true, pair = "（）" },
+        ["["] = { escape = false, close = true, pair = "[]" },
+        ["{"] = { escape = false, close = true, pair = "{}" },
+        [">"] = { escape = true, close = false, pair = "<>" },
+        [")"] = { escape = true, close = false, pair = "()" },
+        ["]"] = { escape = true, close = false, pair = "[]" },
+        ["}"] = { escape = true, close = false, pair = "{}" },
+        ['"'] = { escape = true, close = true, pair = '""' },
+        ["'"] = { escape = true, close = true, pair = "''" },
+        ["`"] = { escape = true, close = true, pair = "`'", enabled_filetypes = {"tex", "latex"} },
+        ["$"] = { escape = true, close = true, pair = "$$", enabled_filetypes = {"markdown", "tex", "latex"} },
+    },
+})
+'''
+
+[[plugins]]
+repo = 'lewis6991/gitsigns.nvim'
+on_event = 'BufReadPost'
+lua_source = '''
+local highlight_state = 0  -- 0=none, 1=word_diff, 2=linehl
+
+require('gitsigns').setup({
+  signs = {
+    add          = { text = '│' },
+    change       = { text = '│' },
+    delete       = { text = '▶' },
+    topdelete    = { text = '▲' },
+    changedelete = { text = '▶' },
+  },
+  signcolumn = false,
+  linehl = false,
+  numhl = false,
+  word_diff = false,
+  diff_opts = {
+    internal = true,
+  },
+
+  on_attach = function(bufnr)
+    local gs = package.loaded.gitsigns
+    local function map(mode, l, r, opts)
+      opts = opts or {}
+      opts.buffer = bufnr
+      vim.keymap.set(mode, l, r, opts)
+    end
+
+    -- Navigation
+    map('n', ']h', gs.next_hunk)
+    map('n', '[h', gs.prev_hunk)
+
+    -- Actions
+    map('n', '<leader>hs', gs.stage_hunk)
+    map('n', '<leader>hu', gs.reset_hunk)
+    map('n', '<leader>hp', gs.preview_hunk)
+    map('n', '<leader>gq', function() gs.setqflist('all') end)
+
+    -- Toggle highlight: none -> word_diff -> linehl -> none
+    map('n', '<leader>x', function()
+      highlight_state = (highlight_state + 1) % 3
+      if highlight_state == 0 then
+        gs.toggle_word_diff(false)
+        gs.toggle_linehl(false)
+      elseif highlight_state == 1 then
+        gs.toggle_word_diff(true)
+        gs.toggle_linehl(false)
+      else  -- 2
+        gs.toggle_word_diff(false)
+        gs.toggle_linehl(true)
+      end
+    end)
+  end,
+})
+
+-- Highlight settings
+vim.api.nvim_set_hl(0, 'GitSignsAddLn', { bold = true, bg = '#e6ffe6', ctermbg = 194 })
+vim.api.nvim_set_hl(0, 'GitSignsChangeLn', { bold = true, bg = '#fffae6', ctermbg = 230 })
+vim.api.nvim_set_hl(0, 'GitSignsDeleteLn', { bold = true, bg = '#ffe6e6', ctermbg = 224 })
+vim.api.nvim_set_hl(0, 'GitSignsAdd', { fg = '#00aa00', ctermfg = 34, bold = true })
+vim.api.nvim_set_hl(0, 'GitSignsChange', { fg = '#bbbb00', ctermfg = 3, bold = true })
+vim.api.nvim_set_hl(0, 'GitSignsDelete', { fg = '#aa0000', ctermfg = 1, bold = true })
+vim.api.nvim_set_hl(0, 'GitSignsDeleteVirtLn', { fg = '#aa0000', bg = '#ffe6e6', ctermfg = 1, ctermbg = 224 })
+vim.api.nvim_set_hl(0, 'GitSignsDeleteLnInline', { fg = '#9ca0b0', strikethrough = true })
+
+vim.api.nvim_create_autocmd('ColorScheme', {
+  group = vim.api.nvim_create_augroup('GitSignsHighlights', { clear = true }),
+  callback = function()
+    vim.api.nvim_set_hl(0, 'GitSignsAddLn', { bold = true, bg = '#e6ffe6', ctermbg = 194 })
+    vim.api.nvim_set_hl(0, 'GitSignsChangeLn', { bold = true, bg = '#fffae6', ctermbg = 230 })
+    vim.api.nvim_set_hl(0, 'GitSignsDeleteLn', { bold = true, bg = '#ffe6e6', ctermbg = 224 })
+    vim.api.nvim_set_hl(0, 'GitSignsAdd', { fg = '#00aa00', ctermfg = 34, bold = true })
+    vim.api.nvim_set_hl(0, 'GitSignsChange', { fg = '#bbbb00', ctermfg = 3, bold = true })
+    vim.api.nvim_set_hl(0, 'GitSignsDelete', { fg = '#aa0000', ctermfg = 1, bold = true })
+    vim.api.nvim_set_hl(0, 'GitSignsDeleteVirtLn', { fg = '#aa0000', bg = '#ffe6e6', ctermfg = 1, ctermbg = 224 })
+    vim.api.nvim_set_hl(0, 'GitSignsDeleteLnInline', { fg = '#9ca0b0', strikethrough = true })
+  end,
+})
+'''
+
+[[plugins]]
+repo = 'lukas-reineke/indent-blankline.nvim'
+merged = '0'
+on_event = 'BufReadPost'
+lua_source = '''
+vim.api.nvim_set_hl(0, 'IblIndent', { fg = '#3a3a3a', nocombine = true })
+vim.api.nvim_set_hl(0, 'IblScope', { fg = '#3a3a3a', nocombine = true })
+require('ibl').setup({
+  indent = { highlight = 'IblIndent' },
+  scope = { highlight = 'IblScope' },
+})
+'''
+
+[[plugins]]
+repo = 'mvllow/modes.nvim'
+on_event = 'InsertEnter'
+lua_source = '''
+require('modes').setup({
+  colors = {
+    bg = "#ffffff", -- Optional bg param, defaults to Normal hl group
+    copy = "#f5c359",
+    delete = "#c75c6a",
+    change = "#c75c6a", -- Optional param, defaults to delete
+    format = "#c79585",
+    insert = "#e4f4f3",
+    replace = "#245361",
+    select = "#9745be", -- Optional param, defaults to visual
+    visual = "#9745be",
+  },
+
+  -- Set opacity for cursorline and number background
+  -- Only visual modes have cursorline highlight
+  line_opacity = {
+    copy = 0,
+    delete = 0,
+    insert = 0,
+    visual = 0.15,
+  },
+
+  -- Enable cursor highlights
+  set_cursor = false,
+
+  -- Enable cursorline initially, and disable cursorline for inactive windows
+  -- or ignored filetypes
+  set_cursorline = true,
+
+  -- Enable line number highlights to match cursorline
+  set_number = false,
+
+  -- Enable sign column highlights to match cursorline
+  set_signcolumn = true,
+
+  -- Disable modes highlights for specified filetypes
+  -- or enable with prefix "!" if otherwise disabled (please PR common patterns)
+  -- Can also be a function fun():boolean that disables modes highlights when true
+  ignore = { 'NvimTree', 'TelescopePrompt', '!minifiles' }
+})
+'''
+
+[[plugins]]
+repo = 'kevinhwang91/promise-async'
+
+[[plugins]]
+repo = 'kevinhwang91/nvim-ufo'
+depends = 'promise-async'
+on_event = 'BufRead'
+lua_source = '''
+vim.o.foldcolumn = '1'
+vim.o.foldlevel = 99
+vim.o.foldlevelstart = 99
+vim.o.foldenable = true
+
+-- use Neovim nightly branch
+vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep:│,foldclose:]]
+vim.o.statuscolumn = '%s%=%l%#FoldColumn#%{(foldlevel(v:lnum) > 0) ? ((foldclosed(v:lnum) == -1) ? ((foldlevel(v:lnum) > foldlevel(v:lnum - 1)) ? "" : "│") : "") : " " }'
+
+-- 3. ハイライト設定
+local function set_fold_hl()
+  vim.api.nvim_set_hl(0, "Folded", { fg = "NONE", bg = "NONE" })
+  vim.api.nvim_set_hl(0, "UfoFoldedBg", { bg = "NONE" })
+end
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+  pattern = "*",
+  callback = set_fold_hl,
+})
+set_fold_hl() -- 初回起動時用にも適用
+
+local handler = function(virtText, lnum, endLnum, width, truncate)
+  local newVirtText = {}
+  local suffix = (' 󰁂 %d '):format(endLnum - lnum)
+  local sufWidth = vim.fn.strdisplaywidth(suffix)
+  local targetWidth = width - sufWidth
+  local curWidth = 0
+  for _, chunk in ipairs(virtText) do
+    local chunkText = chunk[1]
+    local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+    if targetWidth > curWidth + chunkWidth then
+      table.insert(newVirtText, chunk)
+    else
+      chunkText = truncate(chunkText, targetWidth - curWidth)
+      local hlGroup = chunk[2]
+      table.insert(newVirtText, {chunkText, hlGroup})
+      chunkWidth = vim.fn.strdisplaywidth(chunkText)
+      -- str width returned from truncate() may less than 2nd argument, need padding
+      if curWidth + chunkWidth < targetWidth then
+        suffix = suffix .. (' '):rep(targetWidth - curWidth - chunkWidth)
+      end
+      break
+    end
+    curWidth = curWidth + chunkWidth
+  end
+  table.insert(newVirtText, {suffix, 'MoreMsg'})
+  return newVirtText
+end
+
+-- global handler
+-- `handler` is the 2nd parameter of `setFoldVirtTextHandler`,
+-- check out `./lua/ufo.lua` and search `setFoldVirtTextHandler` for detail.
+require('ufo').setup({
+  fold_virt_text_handler = handler,
+  provider_selector = function(bufnr, filetype, buftype)
+    return {'treesitter', 'indent'}
+  end
+})
+
+vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
+vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
+
+'''
+
+#_____________________________________________________________ Start OutlineEdit Mode
+[[plugins]]
+repo = 'pogyomo/submode.nvim'
+on_event = 'InsertEnter'
+lua_source = '''
+require('plugins.outline_edit')
+'''
+#_____________________________________________________________ End OutlineEdit Mode
+
+#_____________________________________________________________ Start incline
+[[plugins]]
+repo = 'b0o/incline.nvim'
+depends = ['nvim-web-devicons']
+merged = '0'
+on_event = 'BufReadPost'
+lua_source = '''
+require('incline').setup({
+  window = {
+    padding = 0,
+    margin = { horizontal = 0, vertical = 0 },
+    placement = { horizontal = "right", vertical = "bottom" },
+  },
+  highlight = {
+    groups = {
+      InclineNormal = { guibg = "#e6e9ef", guifg = "#4c4f69" },
+      InclineNormalNC = { guibg = "#eff1f5", guifg = "#9ca0b0" },
+    },
+  },
+  render = function(props)
+    local devicons = require("nvim-web-devicons")
+
+    -- ファイル名取得
+    local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ":t")
+    if filename == "" then filename = "[No Name]" end
+
+    -- ファイルタイプアイコン取得
+    local ft_icon, ft_color = devicons.get_icon_color(filename)
+
+    -- 未保存状態チェック
+    local modified = vim.bo[props.buf].modified
+
+    -- Diagnostics取得（順序を保証するためipairsを使用）
+    local diag_config = {
+      { severity = "ERROR", icon = "󰅚 ", color = "#d20f39" },
+      { severity = "WARN",  icon = "󰀪 ", color = "#df8e1d" },
+      { severity = "HINT",  icon = "󰌶 ", color = "#179299" },
+      -- { severity = "INFO",  icon = " ",  color = "#1e66f5" },
+    }
+
+    local diag_components = {}
+    for _, diag in ipairs(diag_config) do
+      local count = #vim.diagnostic.get(props.buf, {
+        severity = vim.diagnostic.severity[diag.severity]
+      })
+      if count > 0 then
+        table.insert(diag_components, {
+          " " .. diag.icon .. count,
+          guifg = props.focused and diag.color or "#9ca0b0"
+        })
+      end
+    end
+
+    -- 結果を組み立て（Diagnostics → アイコン → 名前 → 未保存）
+    local result = {}
+
+    -- Diagnostics（左端）
+    if #diag_components > 0 then
+      table.insert(result, " ")
+      for _, comp in ipairs(diag_components) do
+        table.insert(result, comp)
+      end
+    end
+
+    -- ファイルタイプアイコン
+    if ft_icon then
+      table.insert(result, { " ", ft_icon, " ", guifg = props.focused and ft_color or "#9ca0b0" })
+    else
+      table.insert(result, " ")
+    end
+
+    -- ファイル名
+    table.insert(result, {
+      filename,
+      gui = props.focused and "bold" or "",
+      guifg = props.focused and "#4c4f69" or "#9ca0b0"
+    })
+
+    -- 未保存マーク（オレンジの丸）
+    if modified then
+      table.insert(result, { " ●", guifg = props.focused and "#fe640b" or "#bcc0cc" })
+    end
+
+    table.insert(result, " ")
+    return result
+  end,
+})
+'''
+#_____________________________________________________________ End incline
+[[plugins]]
+repo = 'TaDaa/vimade'
+on_event = 'WinNew'
+lua_source = '''
+require('vimade').setup({
+  recipe = {'default', {animate = true}},
+  fadelevel = 0.4,
+  basebg = '#d8d8d8',
+})
+'''
+
+[[plugins]]
+repo = 'chrisbra/NrrwRgn'
+on_cmd = ['NR', 'NRR', 'NarrowRegion', 'NW', 'NarrowWindow']
+hook_add = '''
+  let g:nrrw_rgn_nomap_Nr = 1
+  let g:nrrw_rgn_nomap_nr = 1
+  let g:nrrw_rgn_preserve_ft = 1
+  command! -range NRR '<,'>NR!
+'''
+hook_source = '''
+  set hidden
+  augroup NrrwRgnCustom
+    autocmd!
+    autocmd BufEnter * if exists('b:nrrw_instn') | setlocal readonly nomodifiable | endif
+  augroup END
+'''
+

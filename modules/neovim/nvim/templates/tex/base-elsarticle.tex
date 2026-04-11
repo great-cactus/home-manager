@@ -1,0 +1,86 @@
+\documentclass[twocolumn,10pt]{elsarticle}
+
+\usepackage[columnwise, switch]{lineno}
+\usepackage{hyperref}
+\usepackage{amsfonts,amsmath,amssymb}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{etoolbox}
+\AtBeginEnvironment{frontmatter}{\onecolumn}
+\AfterEndEnvironment{frontmatter}{\twocolumn}
+
+\journal{Combustion and Flame}
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%% Elsevier bibliography styles
+%%%%%%%%%%%%%%%%%%%%%%%
+%% To change the style, put a % in front of the second line of the current style and
+%% remove the % from the second line of the style you would like to use.
+%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Numbered
+%\bibliographystyle{model1-num-names}
+
+%% Numbered without titles
+%\bibliographystyle{model1a-num-names}
+
+%% Harvard
+%\bibliographystyle{model2-names.bst}\biboptions{authoryear}
+
+%% Vancouver numbered
+%\usepackage{numcompress}\bibliographystyle{model3-num-names}
+
+%% Vancouver name/year
+%\usepackage{numcompress}\bibliographystyle{model4-names}\biboptions{authoryear}
+
+%% APA style
+%\bibliographystyle{model5-names}\biboptions{authoryear}
+
+%% AMA style
+%\usepackage{numcompress}\bibliographystyle{model6-num-names}
+
+%% `Elsevier LaTeX' style
+\bibliographystyle{elsarticle-num}
+%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Awsome title}
+
+\author[IFS, SoE]{Akira Tsunoda\corref{mycorrespondingauthor}}
+\cortext[mycorrespondingauthor]{Corresponding author}
+\ead{tsunoda@edyn.ifs.tohoku.ac.jp}
+
+\author[IFS]{Youhi Morii}
+
+\address[IFS]{Institue of Fluid Science, Tohoku University,\\ 2-1-1 Katahira, Aoba-ku, Sendai, Miyagi, 9808577 Japan}
+\address[SoE]{School of Engineering, Tohoku University,\\ 6-6 Aoba, Aramaki, Aoba-ku, Sendai, Miyagi, 9808579 Japan}
+
+\begin{abstract}
+This template helps you to create a properly formatted \LaTeX\ manuscript.
+\end{abstract}
+
+\begin{keyword}
+Combustion \sep Flame \sep Stretch \sep Flame ball
+\end{keyword}
+
+\end{frontmatter}
+
+\linenumbers
+\twocolumn
+
+\section{Introduction}
+
+\section{Methods}
+
+\section{Results and discussion}
+
+\section{Bibliography styles}
+
+\section*{References}
+
+%\bibliography{mybibfile}
+
+\end{document}

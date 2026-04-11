@@ -1,0 +1,38 @@
+snippet dfdx "df(x)/dx"
+\frac{ \mathrm{d} $1 }{ \mathrm{d} $2 }
+endsnippet
+
+snippet ddx "d/dx(f(x))"
+\frac{\mathrm{d}}{\mathrm{d} $1} \left( $2 \right)
+endsnippet
+
+snippet mysum "sum_{$1}^{$2} $3"
+\sum_{$1}^{$2} $3
+endsnippet
+
+snippet int "int_{$1}^{$2} $3 \mathrm{d} $4"
+\int_{$1}^{$2} $3 \mathrm{d} $4
+endsnippet
+
+snippet frame "beamer frame"
+\begin{frame}\frametitle{$1}
+$2
+\end{frame}
+endsnippet
+
+snippet 2col "beamer two columns"
+\begin{columns}
+  \begin{column}{0.5\linewidth}
+  $1
+  \end{column}
+  \begin{column}{0.5\linewidth}
+  $2
+  \end{column}
+\end{columns}
+endsnippet
+
+snippet env "New environment" bA
+\begin{$0}
+  $1
+\end{$0}
+endsnippet

@@ -1,0 +1,95 @@
+{
+  "dfdx": {
+    "prefix": "dfdx",
+    "body": [
+      "\\frac{ \\mathrm{d} $1 }{ \\mathrm{d} $2 }"
+    ],
+    "description": "df(x)/dx"
+  },
+  "ddx": {
+    "prefix": "ddx",
+    "body": [
+      "\\frac{\\mathrm{d}}{\\mathrm{d} $1} \\left( $2 \\right)"
+    ],
+    "description": "d/dx(f(x))"
+  },
+  "mysum": {
+    "prefix": "mysum",
+    "body": [
+      "\\sum_{$1}^{$2} $3"
+    ],
+    "description": "sum_{$1}^{$2} $3"
+  },
+  "int": {
+    "prefix": "int",
+    "body": [
+      "\\int_{$1}^{$2} $3 \\mathrm{d} $4"
+    ],
+    "description": "int_{$1}^{$2} $3 \\mathrm{d} $4"
+  },
+  "frame": {
+    "prefix": "frame",
+    "body": [
+      "\\begin{frame}\\frametitle{$1}",
+      "$2",
+      "\\end{frame}"
+    ],
+    "description": "beamer frame"
+  },
+  "2col": {
+    "prefix": "2col",
+    "body": [
+      "\\begin{columns}",
+      "  \\begin{column}{0.5\\linewidth}",
+      "  $1",
+      "  \\end{column}",
+      "  \\begin{column}{0.5\\linewidth}",
+      "  $2",
+      "  \\end{column}",
+      "\\end{columns}"
+    ],
+    "description": "beamer two columns"
+  },
+  "env": {
+    "prefix": "env",
+    "body": [
+      "\\begin{$1}",
+      "  $2",
+      "\\end{$1}"
+    ],
+    "description": "New environment"
+  },
+  "mathrm": {
+    "prefix": "\\mr",
+    "body": [
+      "\\mathrm{$1}"
+    ],
+    "description": "mathrm"
+  },
+  "Tu": {
+    "prefix": "Tu",
+    "body": [
+      "T_\\mathrm{u}"
+    ],
+    "description": "Unburnt temperature"
+  },
+  "Tad": {
+    "prefix": "Tad",
+    "body": [
+      "T_\\mathrm{ad}"
+    ],
+    "description": "Adiabatic flame temperature"
+  },
+  "myfig": {
+    "prefix": "fig",
+    "body": [
+      "\\begin{figure}[ht]",
+      "  \\centering",
+      "  \\includegraphics[width=90mm]{Figs/$1}",
+      "  \\caption{$2}",
+      "  \\label{fig:$3}",
+      "\\end{figure}"
+    ],
+    "description": "My figure environment"
+  }
+}

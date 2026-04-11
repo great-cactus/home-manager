@@ -1,0 +1,35 @@
+# [[plugins]]
+# repo = 'cocopon/iceberg.vim'
+
+# [[plugins]]
+# repo = 'NLKNguyen/papercolor-theme'
+
+# [[plugins]]
+# repo = 'catppuccin/nvim'
+# lua_add = '''
+# vim.opt.background = 'light'
+# vim.api.nvim_create_autocmd('VimEnter', {
+#     group = vim.api.nvim_create_augroup('MyAutoCmd', {clear = true}),
+#     pattern = '*',
+#     nested = true,
+#     callback = function()
+#         require('github-theme').setup({
+#             palettes = {
+#                 github_light = {
+#                     red = '#ff4b00',
+#                     green = '#03af7a',
+#                     -- blue = '#005aff',
+#                     yellow = '#fff100',
+#                     orange = '#f6aa00',
+#                     purple = '#990099',
+#                     bg0 = '#eeeeee',
+#                     bg1 = '#eeeeee',
+#                 },
+#             },
+#         })
+#     end
+# })
+# vim.cmd.colorscheme "catppuccin-latte"
+# '''
+
+# Colorscheme Yokan is standalone (colors/Yokan.lua). No plugin needed.

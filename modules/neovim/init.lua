@@ -1,327 +1,298 @@
--- Leader key
-vim.g.mapleader = " "
-vim.g.tex_flavor = "latex"
+-- Leader / global vars
+vim.g.mapleader        = ' '
+vim.g.tex_flavor       = 'latex'
+vim.g.fortran_free_source = 0
 
--- dein.vim
-vim.opt.compatible = false
-local dein_base = vim.fn.expand("~/.cache/dein")
-local dein_src = dein_base .. "/repos/github.com/Shougo/dein.vim"
+-- MyAutoCmd: referenced by some plugin ftplugin scripts (e.g. markdown.vim)
+vim.api.nvim_create_augroup('MyAutoCmd', { clear = true })
+
+-- Plugin manager (dein)
+-- インストーラ (dein-installer.vim) の構造に従う:
+--   dein.vim は ~/.cache/dein/repos/github.com/Shougo/dein.vim に配置
+--   TOML は ~/.config/nvim/dein/ で管理（Nix が ~/.cache/dein/ に干渉しないよう分離）
+local dein_base     = vim.fn.expand('~/.cache/dein')
+local dein_src      = dein_base .. '/repos/github.com/Shougo/dein.vim'
+local dein_toml_dir = vim.fn.stdpath('config') .. '/dein'
+
 vim.opt.runtimepath:prepend(dein_src)
 
-if vim.fn["dein#load_state"](dein_base) == 1 then
-  vim.fn["dein#begin"](dein_base)
-  vim.g["dein#auto_recache"] = 1
+if vim.fn['dein#load_state'](dein_base) == 1 then
+  vim.fn['dein#begin'](dein_base)
 
-  local toml = dein_base .. "/dein.toml"
-  local lazy_toml = dein_base .. "/dein_lazy.toml"
-
-  vim.fn["dein#load_toml"](toml, { lazy = 0 })
-  vim.fn["dein#load_toml"](lazy_toml, { lazy = 1 })
-
-  vim.fn["dein#add"](dein_src)
-
-  vim.fn["dein#end"]()
-  vim.fn["dein#save_state"]()
+  vim.fn['dein#load_toml'](dein_toml_dir .. '/dein.toml',      { lazy = false })
+  vim.fn['dein#load_toml'](dein_toml_dir .. '/dein_lazy.toml', { lazy = true  })
+  vim.fn['dein#add'](dein_src)
+  vim.fn['dein#end']()
+  vim.fn['dein#save_state']()
 end
 
-if vim.fn["dein#check_install"]() == 1 then
-  vim.fn["dein#install"]()
+if vim.fn['dein#check_install']() ~= 0 then
+  vim.fn['dein#install']()
 end
 
--- Filetype and syntax
-vim.cmd("filetype indent plugin on")
-vim.cmd("syntax enable")
+vim.cmd('filetype indent plugin on')
+vim.cmd('syntax enable')
 
--- Basic settings
-vim.opt.foldlevel = 99
+-- Disable unused built-in plugins
+vim.g.did_install_default_menus = 1
+vim.g.did_install_syntax_menu   = 1
+vim.g.did_indent_on             = 1
+vim.g.did_load_filetypes        = 1
+vim.g.did_load_ftplugin         = 1
+vim.g.loaded_2html_plugin       = 1
+vim.g.loaded_gzip               = 1
+vim.g.loaded_man                = 1
+vim.g.loaded_matchit            = 1
+vim.g.loaded_matchparen         = 1
+vim.g.loaded_netrwPlugin        = 1
+vim.g.loaded_remote_plugins     = 1
+vim.g.loaded_shada_plugin       = 1
+vim.g.loaded_spellfile_plugin   = 1
+vim.g.loaded_tarPlugin          = 1
+vim.g.loaded_tutor_mode_plugin  = 1
+vim.g.loaded_zipPlugin          = 1
+vim.g.skip_loading_mswin        = 1
+
+-- General
+vim.opt.foldlevel      = 99
 vim.opt.foldlevelstart = 99
-vim.opt.belloff = "all"
-vim.opt.backspace = "indent,eol,start"
-vim.opt.swapfile = false
+vim.opt.belloff        = 'all'
+vim.opt.backspace      = 'indent,eol,start'
+vim.opt.swapfile       = false
 
--- Tab settings
-vim.opt.tabstop = 4
-vim.opt.shiftwidth = 4
-vim.opt.expandtab = true
-
--- Indent settings
-vim.opt.autoindent = true
+-- Tab / indent
+vim.g.markdown_recommended_style = 0  -- keep global shiftwidth=2 for markdown
+vim.opt.tabstop     = 2
+vim.opt.shiftwidth  = 2
+vim.opt.expandtab   = true
+vim.opt.autoindent  = true
 vim.opt.smartindent = true
 
--- Search settings
+-- Search
 vim.opt.ignorecase = true
-vim.opt.wrapscan = true
-vim.opt.showmatch = true
-vim.opt.hlsearch = true
-vim.opt.smartcase = true
+vim.opt.wrapscan   = true
+vim.opt.showmatch  = true
+vim.opt.hlsearch   = true
+vim.opt.smartcase  = true
 
--- Display settings
+-- Display
 vim.opt.termguicolors = true
-vim.opt.number = true
+vim.opt.number         = true
 vim.opt.relativenumber = true
-vim.opt.display = "lastline"
-vim.opt.virtualedit = "onemore"
-vim.opt.wildmode = "list:longest"
-
--- Highlight tab, trail
-vim.opt.list = true
-vim.opt.listchars = { tab = "^ ", trail = "~" }
-
-vim.opt.cmdheight = 0
-vim.opt.conceallevel = 2
-
--- Disable standard plugins
-vim.g.did_install_default_menus = 1
-vim.g.did_install_syntax_menu = 1
-vim.g.did_indent_on = 1
-vim.g.did_load_filetypes = 1
-vim.g.did_load_ftplugin = 1
-vim.g.loaded_2html_plugin = 1
-vim.g.loaded_gzip = 1
-vim.g.loaded_man = 1
-vim.g.loaded_matchit = 1
-vim.g.loaded_matchparen = 1
-vim.g.loaded_netrwPlugin = 1
-vim.g.loaded_remote_plugins = 1
-vim.g.loaded_shada_plugin = 1
-vim.g.loaded_spellfile_plugin = 1
-vim.g.loaded_tarPlugin = 1
-vim.g.loaded_tutor_mode_plugin = 1
-vim.g.loaded_zipPlugin = 1
-vim.g.skip_loading_mswin = 1
-
--- Clear highlight
-vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR><Esc>", { silent = true })
-
--- Exact match replace
-vim.keymap.set("n", "<leader>S", function()
-  local search_term = vim.fn.input("Search for: ")
-  if search_term == "" then return end
-  local replace_term = vim.fn.input("Replace with: ")
-  if replace_term == "" then return end
-  vim.cmd("%s/\\<" .. search_term .. "\\>/" .. replace_term .. "/gc")
-end)
-
--- Tab
-vim.keymap.set("n", "<Leader>t", ":tabe ")
-
--- H/L for line start/end
-vim.keymap.set("n", "L", "$")
-vim.keymap.set("n", "H", "^")
-vim.keymap.set("v", "L", "$")
-vim.keymap.set("v", "H", "^")
-vim.keymap.set({ "n", "v" }, "$", "<nop>")
-vim.keymap.set({ "n", "v" }, "^", "<nop>")
-
--- Full screen help
-vim.api.nvim_create_user_command("H", function(opts)
-  vim.cmd("help " .. opts.args)
-  vim.cmd("only")
-end, { nargs = "*", complete = "help" })
-
--- Completion
-vim.opt.completeopt = "menuone"
-
--- Restore cursor position
-vim.api.nvim_create_autocmd("BufReadPost", {
-  callback = function()
-    local mark = vim.api.nvim_buf_get_mark(0, '"')
-    local lcount = vim.api.nvim_buf_line_count(0)
-    if mark[1] > 0 and mark[1] <= lcount then
-      pcall(vim.api.nvim_win_set_cursor, 0, mark)
-    end
-  end,
-})
-
--- US keyboard swap ; and :
-vim.keymap.set("n", ";", ":")
-vim.keymap.set("n", ":", ";")
-vim.keymap.set("v", ";", ":")
-vim.keymap.set("v", ":", ";")
-
--- Insert mode cursor movement
-vim.keymap.set("i", "<C-l>", "<Right>", { silent = true })
-vim.keymap.set("i", "<C-h>", "<Left>", { silent = true })
-vim.keymap.set("i", "<C-j>", "<Down>", { silent = true })
-vim.keymap.set("i", "<C-k>", "<Up>", { silent = true })
-vim.keymap.set("i", "jj", "<Esc>", { silent = true })
+vim.opt.display        = 'lastline'
+vim.opt.virtualedit    = 'onemore'
+vim.opt.wildmode       = 'list:longest'
+vim.opt.list           = true
+vim.opt.listchars      = { tab = '^ ', trail = '~' }
+vim.opt.cmdheight      = 0
+vim.opt.conceallevel   = 2
+vim.opt.completeopt    = 'menuone'
+vim.opt.autochdir      = true
+vim.opt.laststatus     = 0
+vim.opt.statusline     = "%{repeat('─',winwidth('.'))}"
 
 -- Clipboard
-vim.opt.clipboard = "unnamedplus"
-
--- Yank registers (don't overwrite register on x and p)
-vim.keymap.set("n", "x", '"_x')
-vim.keymap.set("v", "x", '"_x')
-vim.keymap.set("v", "p", '"_dP')
+vim.opt.clipboard = 'unnamedplus'
 
 -- Persistent undo
-vim.opt.undodir = { "./.vimundo", vim.fn.expand("~/.vimundo") }
-vim.api.nvim_create_autocmd("BufReadPre", {
-  pattern = vim.fn.expand("~") .. "/*",
-  callback = function()
-    vim.opt_local.undofile = true
-  end,
-})
+if vim.fn.has('persistent_undo') == 1 then
+  vim.opt.undodir = { './.vimundo', vim.fn.expand('~/.vimundo') }
+  vim.api.nvim_create_autocmd('BufReadPre', {
+    pattern  = vim.fn.expand('~') .. '/*',
+    callback = function() vim.opt_local.undofile = true end,
+    group    = vim.api.nvim_create_augroup('SaveUndoFile', { clear = true }),
+  })
+end
 
--- Check time on focus
-vim.api.nvim_create_autocmd({ "InsertEnter", "WinEnter" }, {
-  callback = function()
-    vim.cmd("checktime")
-  end,
-})
+-- Keymaps: motion
+vim.keymap.set('n', '<Esc>', '<Cmd>nohlsearch<CR><Esc>', { silent = true })
+vim.keymap.set({ 'n', 'v' }, 'L', '$')
+vim.keymap.set({ 'n', 'v' }, 'H', '^')
+vim.keymap.set({ 'n', 'v' }, '$', '<Nop>')
+vim.keymap.set({ 'n', 'v' }, '^', '<Nop>')
+vim.keymap.set('n', 'gj', 'gj', { noremap = true })
+vim.keymap.set('n', 'gk', 'gk', { noremap = true })
+vim.keymap.set('n', 'n', 'mNn')
+
+-- Keymaps: US keyboard
+vim.keymap.set({ 'n', 'v' }, ';', ':')
+vim.keymap.set({ 'n', 'v' }, ':', ';')
+
+-- Keymaps: insert mode
+vim.keymap.set('i', '<C-l>', '<Right>', { silent = true })
+vim.keymap.set('i', '<C-h>', '<Left>',  { silent = true })
+vim.keymap.set('i', 'jj',   '<Esc>',   { silent = true })
+
+-- Keymaps: yank / delete
+vim.keymap.set({ 'n', 'v' }, 'x', '"_x')
+vim.keymap.set('v', 'p', '"_dP')
+
+-- Keymaps: leader
+vim.keymap.set('n', '<Leader>t', ':tabe<Space>', { silent = false })
+vim.keymap.set('n', '<leader>s', 'mS:%s/',       { desc = 'Search with mark' })
+vim.keymap.set('v', '<leader>s', "mS:'<,'>s/",   { desc = 'Search with mark (visual)' })
+
+-- H command: open help fullscreen
+vim.api.nvim_create_user_command('H', function(opts)
+  vim.cmd('help ' .. opts.args .. ' | only')
+end, { nargs = '*', complete = 'help' })
+
+-- Exact match replace
+local function exact_match_replace()
+  local search = vim.fn.input('Search for: ')
+  if search == '' then return end
+  local replace = vim.fn.input('Replace with: ')
+  if replace == '' then return end
+  vim.cmd('%s/\\<' .. search .. '\\>/' .. replace .. '/gc')
+end
+vim.keymap.set('n', '<Leader>S', exact_match_replace)
 
 -- Toggle quickfix
-vim.keymap.set("n", "<leader>q", function()
-  local nr = vim.fn.winnr("$")
-  vim.cmd("cwindow")
-  if vim.fn.winnr("$") == nr then
-    vim.cmd("cclose")
+local function toggle_quickfix()
+  local nr = vim.fn.winnr('$')
+  vim.cmd('cwindow')
+  if vim.fn.winnr('$') == nr then
+    vim.cmd('cclose')
   end
-end, { silent = true })
+end
+vim.keymap.set('n', '<leader>q', toggle_quickfix, { silent = true })
 
--- Function expand/compact
+-- Expand / compact function params
 local function expand_function_params()
-  local save_cursor = vim.fn.getpos(".")
-  vim.cmd("normal! [(")
-  local start_line = vim.fn.line(".")
-  vim.cmd("normal! %")
-  local end_line = vim.fn.line(".")
-  pcall(vim.cmd, start_line .. "," .. end_line .. [[s/\(\w\+\.\w\+\)(\([^)]*\))/\1(\r    \2\r)/g]])
-  pcall(vim.cmd, start_line .. "," .. end_line .. [[s/,\s*/,\r    /g]])
-  vim.fn.setpos(".", save_cursor)
+  local cursor = vim.fn.getpos('.')
+  vim.cmd('normal! [(')
+  local s = vim.fn.line('.')
+  vim.cmd('normal! %')
+  local e = vim.fn.line('.')
+  vim.cmd('silent! ' .. s .. ',' .. e .. [[s/\(\w\+\.\w\+\)(\([^)]*\))/\1(\r    \2\r)/g]])
+  vim.cmd('silent! ' .. s .. ',' .. e .. [[s/,\s*/,\r    /g]])
+  vim.fn.setpos('.', cursor)
 end
 
 local function compact_function_params()
-  local save_cursor = vim.fn.getpos(".")
-  vim.cmd("normal! [(")
-  local start_line = vim.fn.line(".")
-  vim.cmd("normal! %")
-  local end_line = vim.fn.line(".")
-  pcall(vim.cmd, start_line .. "," .. end_line .. [[s/\(\w\+\.\w\+\)(\_s*\([^)]*\)\_s*)/\1(\2)/g]])
-  pcall(vim.cmd, start_line .. "," .. end_line .. [[s/,\_s*/,/g]])
-  pcall(vim.cmd, start_line .. "," .. end_line .. [[s/,/, /g]])
-  pcall(vim.cmd, start_line .. "," .. end_line .. [[s/=\s*/=/g]])
-  pcall(vim.cmd, start_line .. "," .. end_line .. [[s/\s*=/=/g]])
-  vim.fn.setpos(".", save_cursor)
+  local cursor = vim.fn.getpos('.')
+  vim.cmd('normal! [(')
+  local s = vim.fn.line('.')
+  vim.cmd('normal! %')
+  local e = vim.fn.line('.')
+  vim.cmd('silent! ' .. s .. ',' .. e .. [[s/\(\w\+\.\w\+\)(\_s*\([^)]*\)\_s*)/\1(\2)/g]])
+  vim.cmd('silent! ' .. s .. ',' .. e .. [[s/,\_s*/,/g]])
+  vim.cmd('silent! ' .. s .. ',' .. e .. [[s/,/, /g]])
+  vim.cmd('silent! ' .. s .. ',' .. e .. [[s/=\s*/=/g]])
+  vim.cmd('silent! ' .. s .. ',' .. e .. [[s/\s*=/=/g]])
+  vim.fn.setpos('.', cursor)
 end
 
-vim.keymap.set("n", "<leader>ef", function()
-  local line = vim.fn.getline(".")
-  if line:match("%w+%.%w+%(") and not line:match(",\n") then
+local function toggle_function_format()
+  local line = vim.fn.getline('.')
+  if line:match('%w+%.%w+%(') and not line:match(',\n') then
     expand_function_params()
   else
     compact_function_params()
   end
-end)
+end
+vim.keymap.set('n', '<leader>ef', toggle_function_format)
 
--- Fix trailing whitespace on save
-vim.api.nvim_create_autocmd("BufWritePre", {
+-- Autocommands
+local ag = vim.api.nvim_create_augroup
+
+-- Restore cursor position on open
+vim.api.nvim_create_autocmd('BufReadPost', {
+  group   = ag('KeepLastPosition', { clear = true }),
+  pattern = '*',
   callback = function()
-    local pos = vim.fn.getpos(".")
-    pcall(vim.cmd, [[%s/\\\@<!\s\+$//]])
-    vim.fn.setpos(".", pos)
+    local line = vim.fn.line("'\"")
+    if line > 0 and line <= vim.fn.line('$') then
+      vim.cmd("normal! g'\"")
+    end
   end,
 })
 
-vim.g.fortran_free_source = 0
-vim.opt.autochdir = true
-
--- StatusLine: hide statusline
-vim.opt.laststatus = 0
-vim.opt.statusline = "%{repeat('─',winwidth('.'))}"
-
--- Code block background highlight for markdown/typst
-local code_block_ns = vim.api.nvim_create_namespace("code_block_bg")
-
-local function setup_codeblock_hl()
-  vim.api.nvim_set_hl(0, "CodeBlockBg", { bg = "#c7c7c7" })
-end
-
-vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
-  callback = setup_codeblock_hl,
+-- Checktime on focus
+vim.api.nvim_create_autocmd({ 'InsertEnter', 'WinEnter' }, {
+  group   = ag('VimCheckTime', { clear = true }),
+  pattern = '*',
+  command = 'checktime',
 })
-setup_codeblock_hl()
 
-local function highlight_code_blocks()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local ft = vim.bo[bufnr].filetype
-  if ft ~= "markdown" and ft ~= "typst" then return end
-
-  vim.api.nvim_buf_clear_namespace(bufnr, code_block_ns, 0, -1)
-
-  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local in_block = false
-
-  for i, line in ipairs(lines) do
-    if line:match("^```") then
-      in_block = not in_block
-      vim.api.nvim_buf_set_extmark(bufnr, code_block_ns, i - 1, 0, {
-        end_row = i - 1,
-        end_col = #line,
-        hl_group = "CodeBlockBg",
-        hl_eol = true,
-      })
-    elseif in_block then
-      vim.api.nvim_buf_set_extmark(bufnr, code_block_ns, i - 1, 0, {
-        end_row = i - 1,
-        end_col = #line,
-        hl_group = "CodeBlockBg",
-        hl_eol = true,
-      })
-    end
+-- Strip trailing whitespace on save (preserving cursor)
+local function fix_trailing_whitespace()
+  local pos         = vim.fn.getpos('.')
+  local was_modified = vim.bo.modified
+  vim.cmd([[silent! %s/\\\@<!\s\+$//]])
+  if not was_modified then
+    vim.bo.modified = false
   end
+  vim.fn.setpos('.', pos)
 end
-
-vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "TextChanged", "TextChangedI" }, {
-  pattern = { "*.md", "*.typ" },
-  callback = highlight_code_blocks,
+vim.api.nvim_create_autocmd('BufWritePre', {
+  group    = ag('FixPunctuationGroup', { clear = true }),
+  pattern  = '*',
+  callback = fix_trailing_whitespace,
 })
 
--- StatusLine: sync background with Normal to hide statusline
+-- View save / restore
+vim.opt.viewoptions:remove('options')
+vim.opt.viewoptions:remove('folds')
+
+local view_group = ag('AutoView', { clear = true })
+vim.api.nvim_create_autocmd('BufWritePost', {
+  group   = view_group,
+  pattern = '*',
+  callback = function()
+    if vim.fn.expand('%') ~= '' and vim.bo.buftype ~= 'nofile' then
+      vim.cmd('mkview')
+    end
+  end,
+})
+vim.api.nvim_create_autocmd('BufRead', {
+  group   = view_group,
+  pattern = '*',
+  callback = function()
+    if vim.fn.expand('%') ~= '' and vim.bo.buftype ~= 'nofile' then
+      vim.cmd('silent! loadview')
+    end
+  end,
+})
+
+-- StatusLine: blend with Normal background
 local function setup_statusline_hl()
-  local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
+  local normal = vim.api.nvim_get_hl(0, { name = 'Normal' })
   local bg = normal.bg
   if bg then
-    vim.api.nvim_set_hl(0, "StatusLine", { bg = bg })
-    vim.api.nvim_set_hl(0, "StatusLineNC", { bg = bg })
+    vim.api.nvim_set_hl(0, 'StatusLine',   { bg = bg })
+    vim.api.nvim_set_hl(0, 'StatusLineNC', { bg = bg })
   else
-    vim.api.nvim_set_hl(0, "StatusLine", { link = "Normal" })
-    vim.api.nvim_set_hl(0, "StatusLineNC", { link = "Normal" })
+    vim.api.nvim_set_hl(0, 'StatusLine',   { link = 'Normal' })
+    vim.api.nvim_set_hl(0, 'StatusLineNC', { link = 'Normal' })
   end
 end
-
-vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
+vim.api.nvim_create_autocmd({ 'VimEnter', 'ColorScheme' }, {
   callback = setup_statusline_hl,
 })
 
--- Put a mark before search
-vim.keymap.set("n", "<leader>s", "mS:%s/", { desc = "Put a mark before search" })
-vim.keymap.set("v", "<leader>s", "mS:'<,'>s/", { desc = "Put a mark before search" })
-vim.keymap.set("n", "n", "mNn")
-
--- View options (don't save options and folds)
-vim.opt.viewoptions:remove("options")
-vim.opt.viewoptions:remove("folds")
-
--- Auto save/load view
-local view_group = vim.api.nvim_create_augroup("AutoView", { clear = true })
-
-vim.api.nvim_create_autocmd("BufWritePost", {
-  group = view_group,
-  pattern = "*",
-  callback = function()
-    if vim.fn.expand("%") ~= "" and vim.bo.buftype ~= "nofile" then
-      vim.cmd("mkview")
-    end
+-- Tree-sitter: native highlight and fold (nvim 0.12 built-in)
+vim.api.nvim_create_autocmd('FileType', {
+  callback = function(args)
+    pcall(vim.treesitter.start, args.buf)
   end,
 })
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+vim.opt.foldenable = false
 
-vim.api.nvim_create_autocmd("BufRead", {
-  group = view_group,
-  pattern = "*",
-  callback = function()
-    if vim.fn.expand("%") ~= "" and vim.bo.buftype ~= "nofile" then
-      vim.cmd("silent! loadview")
-    end
-  end,
+-- Colorscheme (standalone, no plugin dependency)
+vim.opt.background = 'light'
+vim.api.nvim_create_autocmd('VimEnter', {
+  callback = function() vim.cmd.colorscheme 'Yokan' end,
 })
+
+-- Modules
+require('config.terminal')
+require('config.claude')
+require('config.substitute_nohl')
+require('config.lsp_treesitter_toggle').setup({ command = 'toggle' })
+require('config.tabline_toggle').setup()
+require('config.smart_scroll').setup()
+require('config.thino').setup()
+require('config.one_sentence_per_line').setup()
