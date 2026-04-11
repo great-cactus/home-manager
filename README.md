@@ -1,11 +1,27 @@
 # Home Manager Configuration
 
-Nix Home Managerを使ったzsh/neovim設定の管理リポジトリ.
+Nix Home Managerを使った開発環境設定の管理リポジトリ.
 
-## Nixのインストール（未導入の場合）
+## 管理対象
+
+| モジュール | 管理内容 |
+|------------|----------|
+| `modules/zsh/` | zsh設定（エイリアス・カスタム関数） |
+| `modules/neovim/` | Neovim設定（dein.vimプラグイン・LSP・スニペット等） |
+| `modules/claude/` | Claude Code設定（ルール・スキル） |
+| `modules/obsidian/` | Obsidian Vault用ルール・スキル |
+
+### パッケージ（`home.nix`で管理）
+
+`gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`
+
+---
+
+## セットアップ
+
+### 1. Nixのインストール（未導入の場合）
 
 ```bash
-# 公式インストーラー
 curl -L https://nixos.org/nix/install | sh
 
 # Flakes有効化（~/.config/nix/nix.conf に追加）
@@ -13,15 +29,13 @@ mkdir -p ~/.config/nix
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```
 
-## セットアップ
-
-### 1. 既存設定のバックアップ
+### 2. 既存設定のバックアップ
 
 ```bash
 mv ~/.zshrc ~/.zshrc.backup
 ```
 
-### 2. 環境変数ファイルの作成
+### 3. 環境変数ファイルの作成
 
 `~/.env` を作成し,動的な環境変数を定義：
 
@@ -32,30 +46,17 @@ WIN_DEVICE=your-pc-name
 EOF
 ```
 
-### 3. 初回適用
+### 4. 初回適用
 
 ```bash
-# Linux
+# Linux (x86_64)
 nix run .#homeConfigurations.linux.activationPackage
 
 # macOS (Apple Silicon)
 nix run .#homeConfigurations.macos.activationPackage
 ```
 
-ユーザー名とホームディレクトリは `flake.nix` の `extraSpecialArgs` で環境ごとに定義されているため,`home.nix` の編集は不要.
-
-### 4. Neovim（dein.vim）のセットアップ
-
-```bash
-# dein.vimのインストール
-git clone https://github.com/Shougo/dein.vim ~/.cache/dein/repos/github.com/Shougo/dein.vim
-
-# tomlファイルの配置（既存の設定がある場合）
-cp /path/to/your/dein.toml ~/.cache/dein/
-cp /path/to/your/dein_lazy.toml ~/.cache/dein/
-```
-
-初回起動時にdeinが自動でプラグインをインストールする.
+> ユーザー名とホームディレクトリは `flake.nix` の `extraSpecialArgs` で環境ごとに定義されているため,`home.nix` の編集は不要.
 
 ### 5. 新しいシェルを起動
 
@@ -63,9 +64,11 @@ cp /path/to/your/dein_lazy.toml ~/.cache/dein/
 exec zsh
 ```
 
+---
+
 ## 日常の使い方
 
-### 設定を変更した後
+### 設定変更後の適用
 
 ```bash
 # Linux
@@ -75,11 +78,13 @@ nix run .#homeConfigurations.linux.activationPackage
 nix run .#homeConfigurations.macos.activationPackage
 ```
 
-### Flakeの依存関係を更新
+### 依存パッケージの更新
 
 ```bash
 nix flake update
 ```
+
+---
 
 ## ディレクトリ構造
 
@@ -95,19 +100,33 @@ nix flake update
     │   ├── default.nix    # zsh本体設定
     │   ├── aliases.nix    # エイリアス定義
     │   └── functions.nix  # カスタム関数
-    └── neovim/
-        ├── default.nix    # neovim設定
-        └── init.lua       # Lua設定
+    ├── neovim/
+    │   ├── default.nix    # Neovim設定（Nix）
+    │   ├── init.lua       # 起動設定
+    │   ├── dein.toml      # dein.vim プラグイン定義
+    │   ├── dein_lazy.toml # dein.vim 遅延プラグイン定義
+    │   └── nvim/
+    │       ├── colors/    # カラースキーム
+    │       ├── lua/
+    │       │   ├── config/    # 機能別設定（スクロール・補完・LSP切替等）
+    │       │   ├── lsp/       # LSP設定（pylsp, lua_ls, ltex, texlab 等）
+    │       │   └── plugins/   # プラグイン設定（codecompanion, obsidian 等）
+    │       ├── queries/   # Treesitter クエリ（highlights・injections）
+    │       ├── snippets/  # スニペット（Fortran, LaTeX, Markdown 等）
+    │       └── templates/ # ファイルテンプレート（Python, TeX 等）
+    ├── claude/
+    │   ├── default.nix    # ~/.claude/ へのシンボリックリンク定義
+    │   ├── rules/         # Claude Codeの行動ルール（14ファイル）
+    │   └── skills/        # Claude Codeのカスタムスキル
+    │       ├── coding-standards/
+    │       ├── smart-commit/
+    │       └── obsidian-create-permanent-note/
+    └── obsidian/
+        ├── rules/         # Obsidian Vault向けルール
+        └── skills/        # Obsidian Vault向けスキル
 ```
 
-### 外部依存（dein.vim）
-
-```
-~/.cache/dein/
-├── dein.toml              # 通常プラグイン定義
-├── dein_lazy.toml         # 遅延読み込みプラグイン定義
-└── repos/                 # プラグイン本体（自動生成）
-```
+---
 
 ## 環境別設定
 
@@ -119,6 +138,19 @@ nix flake update
 | macos | akiratsunoda | /Users/akiratsunoda |
 
 新しい環境を追加する場合は `flake.nix` の `homeConfigurations` に設定を追加する.
+
+---
+
+## Claude Codeモジュールについて
+
+`modules/claude/` はClaude Code（`~/.claude/`）の設定を管理する.
+
+- **rules/**: Claude Codeが参照する行動ルール（コーディングスタイル・セキュリティ・テスト・Obsidian連携等）
+- **skills/**: `/skill-name` で呼び出せるカスタムスキル
+
+設定変更後はHome Managerを再適用すると `~/.claude/rules/` と `~/.claude/skills/` が更新される.
+
+---
 
 ## トラブルシューティング
 
@@ -135,8 +167,20 @@ echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 
 ```bash
 mv ~/.zshrc ~/.zshrc.backup
-nix run .#homeConfigurations.macos.activationPackage
+nix run .#homeConfigurations.linux.activationPackage
 ```
+
+### Neovimプラグインが更新されない
+
+dein.vimのキャッシュをクリアして再起動：
+
+```
+:call dein#clear_state()
+:q
+nvim
+```
+
+---
 
 ## 参考リンク
 
