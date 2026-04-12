@@ -1466,14 +1466,13 @@ on_cmd = ['NR', 'NRR', 'NarrowRegion', 'NW', 'NarrowWindow']
 hook_add = '''
   let g:nrrw_rgn_nomap_Nr = 1
   let g:nrrw_rgn_nomap_nr = 1
-  let g:nrrw_rgn_preserve_ft = 1
   command! -range NRR '<,'>NR!
 '''
 hook_source = '''
   set hidden
-  augroup NrrwRgnCustom
+  augroup nrrwrgncustom
     autocmd!
-    autocmd BufEnter * if exists('b:nrrw_instn') | setlocal readonly nomodifiable | endif
-  augroup END
+    autocmd bufenter * if exists('b:nrrw_instn') | setlocal readonly nomodifiable | endif
+  augroup end
 '''
 
