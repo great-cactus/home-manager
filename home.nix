@@ -23,6 +23,7 @@
     ripgrep
     trash-cli
     llama-cpp
+    claude-code
   ];
 
   # import-env.sh を ~/.local/bin に配置

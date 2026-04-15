@@ -8,9 +8,19 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-utils.url = "github:numtide/flake-utils";
+    claude-code.url = "github:sadjow/claude-code-nix";
   };
 
-  outputs = { self, nixpkgs, home-manager, flake-utils, ... }:
+  outputs = { self, nixpkgs, home-manager, flake-utils, claude-code, ... }:
+    let
+      mkPkgs = system: import nixpkgs {
+        inherit system;
+        overlays = [ claude-code.overlays.default ];
+        config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+          "claude-code"
+        ];
+      };
+    in
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -22,7 +32,7 @@
     ) // {
       homeConfigurations = {
         "linux" = home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          pkgs = mkPkgs "x86_64-linux";
           modules = [ ./home.nix ];
           extraSpecialArgs = {
             username = "tnd";
@@ -30,7 +40,7 @@
           };
         };
         "macos" = home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+          pkgs = mkPkgs "aarch64-darwin";
           modules = [ ./home.nix ];
           extraSpecialArgs = {
             username = "akiratsunoda";
