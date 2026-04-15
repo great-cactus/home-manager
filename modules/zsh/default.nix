@@ -9,6 +9,16 @@
   programs.zsh = {
     enable = true;
 
+    # ログインシェル時に Nix プロファイルを初期化
+    profileExtra = ''
+      if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
+        . ~/.nix-profile/etc/profile.d/nix.sh
+      fi
+      if [ -e ~/.nix-profile/etc/profile.d/hm-session-vars.sh ]; then
+        . ~/.nix-profile/etc/profile.d/hm-session-vars.sh
+      fi
+    '';
+
     history = {
       size = 1000;
       save = 1000;

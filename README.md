@@ -13,7 +13,7 @@ Nix Home Managerを使った開発環境設定の管理リポジトリ.
 
 ### パッケージ（`home.nix`で管理）
 
-`gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`
+`gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`
 
 ---
 
@@ -58,7 +58,24 @@ nix run .#homeConfigurations.macos.activationPackage
 
 > ユーザー名とホームディレクトリは `flake.nix` の `extraSpecialArgs` で環境ごとに定義されているため,`home.nix` の編集は不要.
 
-### 5. 新しいシェルを起動
+### 5. zsh をデフォルトシェルに設定
+
+```bash
+# /etc/shells に Nix 管理の zsh を登録
+echo ~/.nix-profile/bin/zsh | sudo tee -a /etc/shells
+
+# デフォルトシェルを変更
+chsh -s ~/.nix-profile/bin/zsh
+```
+
+> **注意**: `~/.nix-profile/bin/zsh` がシンボリックリンクで `chsh` が拒否する場合は実体パスを使用する：
+> ```bash
+> ZSHPATH=$(readlink -f ~/.nix-profile/bin/zsh)
+> echo $ZSHPATH | sudo tee -a /etc/shells
+> chsh -s $ZSHPATH
+> ```
+
+### 6. 新しいシェルを起動
 
 ```bash
 exec zsh
@@ -168,6 +185,21 @@ echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```bash
 mv ~/.zshrc ~/.zshrc.backup
 nix run .#homeConfigurations.linux.activationPackage
+```
+
+### zsh切替後にNix管理のコマンドが見つからない
+
+zshをデフォルトシェルにした後、`vim`・`gh`・`claude-code`等が `command not found` になる場合は、Nixプロファイルが初期化されていない。`modules/zsh/default.nix` の `profileExtra` に以下が含まれているか確認する：
+
+```nix
+profileExtra = ''
+  if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
+    . ~/.nix-profile/etc/profile.d/nix.sh
+  fi
+  if [ -e ~/.nix-profile/etc/profile.d/hm-session-vars.sh ]; then
+    . ~/.nix-profile/etc/profile.d/hm-session-vars.sh
+  fi
+'';
 ```
 
 ### Neovimプラグインが更新されない
