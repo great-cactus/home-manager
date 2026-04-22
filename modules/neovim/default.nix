@@ -29,6 +29,8 @@ let
     (n: v: v == "regular" && lib.hasSuffix ".lua" n)
     (builtins.readDir ./nvim/lua/config);
 
+  ddcDictPath = "${pkgs.scowl}/share/dict/wamerican.txt";
+
 in {
   programs.neovim = {
     enable = true;
@@ -55,7 +57,10 @@ in {
     # dein プラグイン定義（~/.cache/dein/ ではなく ~/.config/nvim/dein/ に置く）
     # → dein のステートキャッシュ（~/.cache/dein/）と分離する
     "nvim/dein/dein.toml".source      = ./dein.toml;
-    "nvim/dein/dein_lazy.toml".source = ./dein_lazy.toml;
+    "nvim/dein/dein_lazy.toml".text = builtins.replaceStrings
+      [ "/usr/share/dict/american-english" ]
+      [ ddcDictPath ]
+      (builtins.readFile ./dein_lazy.toml);
 
     # ディレクトリ単位でリンク
     "nvim/colors".source    = ./nvim/colors;
