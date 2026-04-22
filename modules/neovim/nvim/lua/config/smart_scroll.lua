@@ -18,21 +18,26 @@ M.cursor_pos  = 0.25
 local last_scroll_ms = 0
 
 local function smart_scroll(direction)
-  local now      = vim.uv.now()  -- milliseconds
+  local now      = vim.uv.now()
   local delay_ms = math.floor(M.key_repeat * M.time_scale * 1000)
   if now - last_scroll_ms < delay_ms then return end
   last_scroll_ms = now
 
   local win_height = vim.api.nvim_win_get_height(0)
-  local lines  = math.max(1, math.floor(1 / M.time_scale))
-  local offset = math.floor(win_height * M.cursor_pos)
+  local lines      = math.max(1, math.floor(1 / M.time_scale))
+  local offset     = math.floor(win_height * M.cursor_pos)
+  local last_line  = vim.fn.line('$')
 
-  local move_cmd = direction > 0 and 'j' or 'k'
+  local view       = vim.fn.winsaveview()
+  local new_lnum   = math.max(1, math.min(last_line, view.lnum + direction * lines))
+  local new_top    = math.max(1, math.min(last_line, new_lnum - offset))
 
-  vim.cmd('normal! ' .. lines .. move_cmd .. 'zt')
-  if offset > 0 then
-    vim.cmd('normal! ' .. offset .. '\25') -- \25 = <C-y>
-  end
+  vim.fn.winrestview({
+    lnum    = new_lnum,
+    topline = new_top,
+    col     = view.col,
+    curswant = view.curswant,
+  })
 end
 
 function M.setup(opts)
