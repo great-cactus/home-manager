@@ -217,7 +217,7 @@ vim.api.nvim_create_autocmd({ 'InsertEnter', 'WinEnter' }, {
 
 -- Strip trailing whitespace on save (preserving cursor)
 local function fix_trailing_whitespace()
-  local pos         = vim.fn.getpos('.')
+  local pos          = vim.fn.getpos('.')
   local was_modified = vim.bo.modified
   vim.cmd([[silent! %s/\\\@<!\s\+$//]])
   if not was_modified then
@@ -293,6 +293,10 @@ require('config.claude')
 require('config.substitute_nohl')
 require('config.lsp_treesitter_toggle').setup({ command = 'toggle' })
 require('config.tabline_toggle').setup()
-require('config.smart_scroll').setup()
+require('config.smart_scroll').setup({
+  time_scale = 2.0,
+  key_repeat  = 0.05,
+  cursor_pos  = 0.25,
+})
 require('config.thino').setup()
 require('config.one_sentence_per_line').setup()
