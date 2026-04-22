@@ -12,6 +12,12 @@
     nix-direnv.enable = true;
   };
 
+  programs.git = {
+    settings = {
+      core.quotepath = false;
+    };
+  };
+
   imports = [
     ./modules/zsh
     ./modules/neovim
@@ -43,6 +49,11 @@
     LC_ALL = "en_US.UTF-8";
     LANG = "ja_JP.UTF-8";
   };
+
+  home.activation.createSkkDirs = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    mkdir -p "${config.home.homeDirectory}/.cache/skk"
+    mkdir -p "${config.home.homeDirectory}/.skk"
+  '';
 
   # WSLg が PulseAudio を提供するため、systemd の pulseaudio サービスをマスクする
   home.activation.maskPulseaudioForWSLg = lib.hm.dag.entryAfter ["writeBoundary"] ''
