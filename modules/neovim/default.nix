@@ -8,7 +8,7 @@ let
       paths = [
         ts
         (ts.withPlugins (p: with p; [
-          bash cpp diff fortran javascript julia kotlin
+          bash cpp diff fortran javascript
           latex lua markdown markdown_inline nix python
           query regex toml typescript typst vimdoc
         ]))
@@ -42,6 +42,17 @@ in {
     withPython3 = true;
 
     initLua = builtins.readFile ./init.lua;
+
+    # LSPサーバーをNixで直接提供することでMasonのvenv作成を回避
+    extraPackages = with pkgs; [
+      python3Packages.python-lsp-server  # pylsp
+      texlab
+      ltex-ls
+      efm-langserver
+      lua-language-server                # lua_ls
+      nil                                # nil_ls
+      fortls
+    ];
   };
 
   home.file = {

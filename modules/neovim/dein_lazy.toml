@@ -443,7 +443,6 @@ require'treesitter-context'.setup{
 [[plugins]]
 repo = 'neovim/nvim-lspconfig'
 on_event = ['BufReadPre', 'BufNewFile']
-depends = ['mason.nvim']
 merged = '0'
 lua_source = '''
 -- LSP keymaps via LspAttach autocmd
@@ -559,37 +558,7 @@ vim.lsp.log.set_level("OFF")
 require('lsp')
 '''
 
-[[plugins]]
-repo = 'williamboman/mason.nvim'
-merge = '0'
-lua_source = '''
-require('mason').setup({
-  ui = {
-    border = 'rounded',
-    width = 0.8,
-    height = 0.8,
-  },
-  log_level = vim.log.levels.INFO,
-  max_concurrent_installers = 5,
-})
-'''
-
-[[plugins]]
-repo = 'williamboman/mason-lspconfig.nvim'
-depends = ['nvim-lspconfig', 'mason.nvim']
-lua_source = '''
-require('mason-lspconfig').setup({
-  ensure_installed = {
-    'pylsp',
-    'texlab',
-    'ltex',
-    'efm',
-    'lua_ls',
-  },
-  automatic_installation = true,
-})
-'''
-#_____________________________________________________________ End LSP with mason.nvim and builtin LSP
+#_____________________________________________________________ End LSP with builtin LSP
 
 [[plugins]]
 repo = 'junegunn/vim-easy-align'
