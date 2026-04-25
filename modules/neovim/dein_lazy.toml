@@ -405,6 +405,13 @@ require("ddc_source_lsp_setup").setup()
 repo = '~/.cache/dein/_generated/nvim-treesitter'
 merged = '0'
 on_event = 'BufReadPost'
+lua_source = '''
+-- Nix管理のパーサディレクトリをinstall_dirとして登録する
+-- これによりnvim-treesitterのget_installed()がパーサを認識できる
+require('nvim-treesitter').setup({
+  install_dir = vim.fn.expand('~/.cache/dein/_generated/nvim-treesitter'),
+})
+'''
 
 [[plugins]]
 repo = 'nvim-treesitter/nvim-treesitter-context'

@@ -2,17 +2,18 @@
 
 let
   nvim-treesitter-with-parsers =
-    let ts = pkgs.vimPlugins.nvim-treesitter;
+    let
+      ts = pkgs.vimPlugins.nvim-treesitter;
+      withParsers = ts.withPlugins (p: with p; [
+        bash cpp diff fortran javascript
+        latex lua markdown markdown_inline nix python
+        query regex toml typescript typst vimdoc
+      ]);
     in pkgs.symlinkJoin {
       name = "nvim-treesitter-with-parsers";
-      paths = [
-        ts
-        (ts.withPlugins (p: with p; [
-          bash cpp diff fortran javascript
-          latex lua markdown markdown_inline nix python
-          query regex toml typescript typst vimdoc
-        ]))
-      ];
+      # withPlugins はパーサ .so を passthru.dependencies に格納するため
+      # symlinkJoin で ts (Lua ファイル) + 各パーサ derivation を結合する
+      paths = [ ts ] ++ withParsers.dependencies;
     };
 
   # dein.vim をインストーラが期待するパスに配置するための derivation
@@ -43,7 +44,7 @@ in {
 
     initLua = builtins.readFile ./init.lua;
 
-    # LSPサーバーをNixで直接提供することでMasonのvenv作成を回避
+    # LSPサーバーをNixで直接提供する
     extraPackages = with pkgs; [
       python3Packages.python-lsp-server  # pylsp
       texlab

@@ -25,23 +25,16 @@ local function get_lsp_clients()
   return clients
 end
 
--- Get list of installed Tree-sitter parsers
+-- Get list of installed Tree-sitter parsers by scanning runtimepath
 local function get_treesitter_parsers()
   local parsers = {}
-  local ok, ts_parsers = pcall(require, "nvim-treesitter.parsers")
+  local seen = {}
 
-  if not ok then
-    return parsers
-  end
-
-  local installed = ts_parsers.get_parser_configs()
-
-  for parser_name, _ in pairs(installed) do
-    if ts_parsers.has_parser(parser_name) then
-      table.insert(parsers, {
-        type = "treesitter",
-        name = parser_name,
-      })
+  for _, path in ipairs(vim.api.nvim_get_runtime_file("parser/*.so", true)) do
+    local name = vim.fn.fnamemodify(path, ":t:r")
+    if not seen[name] then
+      seen[name] = true
+      table.insert(parsers, { type = "treesitter", name = name })
     end
   end
 
@@ -63,13 +56,8 @@ local function get_status(item)
     end
     return false
   elseif item.type == "treesitter" then
-    -- Check if highlighting is enabled for current buffer
-    local ok_hl, ts_highlight = pcall(require, "vim.treesitter.highlighter")
-    if ok_hl and ts_highlight.active then
-      return ts_highlight.active[vim.api.nvim_get_current_buf()] ~= nil
-    end
-
-    return false
+    local bufnr = vim.api.nvim_get_current_buf()
+    return vim.treesitter.highlighter.active[bufnr] ~= nil
   end
 
   return false
@@ -78,32 +66,27 @@ end
 -- Toggle LSP client
 local function toggle_lsp(item)
   if get_status(item) then
-    -- Stop LSP client
     vim.lsp.stop_client(item.id)
     vim.notify("Stopped LSP: " .. item.name, vim.log.levels.INFO)
   else
-    -- Restart LSP client
     vim.cmd("LspStart " .. item.name)
     vim.notify("Started LSP: " .. item.name, vim.log.levels.INFO)
   end
 end
 
--- Toggle Tree-sitter parser
+-- Toggle Tree-sitter highlighting for current buffer
 local function toggle_treesitter(item)
-  local ok, ts_config = pcall(require, "nvim-treesitter.configs")
-  if not ok then
-    vim.notify("Tree-sitter not available", vim.log.levels.ERROR)
-    return
-  end
-
+  local bufnr = vim.api.nvim_get_current_buf()
   if get_status(item) then
-    -- Disable Tree-sitter highlighting
-    vim.cmd("TSBufDisable highlight")
+    vim.treesitter.stop(bufnr)
     vim.notify("Disabled Tree-sitter: " .. item.name, vim.log.levels.INFO)
   else
-    -- Enable Tree-sitter highlighting
-    vim.cmd("TSBufEnable highlight")
-    vim.notify("Enabled Tree-sitter: " .. item.name, vim.log.levels.INFO)
+    local ok, err = pcall(vim.treesitter.start, bufnr)
+    if ok then
+      vim.notify("Enabled Tree-sitter: " .. item.name, vim.log.levels.INFO)
+    else
+      vim.notify("Failed to enable Tree-sitter: " .. tostring(err), vim.log.levels.ERROR)
+    end
   end
 end
 
