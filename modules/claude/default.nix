@@ -23,5 +23,11 @@
     ".claude/skills/coding-standards/SKILL.md".source                  = ./skills/coding-standards/SKILL.md;
     ".claude/skills/smart-commit/SKILL.md".source                      = ./skills/smart-commit/SKILL.md;
     ".claude/skills/obsidian-create-permanent-note/SKILL.md".source    = ./skills/obsidian-create-permanent-note/SKILL.md;
+
+    # Scientific writing review skills
+    ".claude/skills/review-clarity/SKILL.md".source     = ./skills/review-clarity/SKILL.md;
+    ".claude/skills/review-coherence/SKILL.md".source   = ./skills/review-coherence/SKILL.md;
+    ".claude/skills/review-correctness/SKILL.md".source = ./skills/review-correctness/SKILL.md;
+    ".claude/skills/review-impact/SKILL.md".source      = ./skills/review-impact/SKILL.md;
   };
 }
