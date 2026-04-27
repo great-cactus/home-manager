@@ -1425,6 +1425,7 @@ require('incline').setup({
 })
 '''
 #_____________________________________________________________ End incline
+
 [[plugins]]
 repo = 'TaDaa/vimade'
 on_event = 'WinNew'
@@ -1452,3 +1453,17 @@ hook_source = '''
   augroup end
 '''
 
+#_____________________________________________________________ Kensaku
+[[plugins]]
+repo = 'lambdalisue/vim-kensaku'
+
+[[plugins]]
+repo = 'lambdalisue/vim-kensaku-search'
+depends = ['vim-kensaku', 'denops.vim']
+on_event = ['CmdlineEnter']
+on_if = 'getcmdtype() ==# "/" && search("[ぁ-んァ-ヶ一-龠々]", "nw") > 0'
+hook_source = '''
+cnoremap <CR> <Plug>(kensaku-search-replace)<CR>
+'''
+
+#_____________________________________________________________ Kensaku
