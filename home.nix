@@ -25,6 +25,7 @@
   ];
 
   home.packages = with pkgs; [
+    corefonts
     gh
     uv
     fzf
@@ -49,6 +50,14 @@
     LC_ALL = "en_US.UTF-8";
     LANG = "ja_JP.UTF-8";
   };
+
+  home.file.".config/fontconfig/conf.d/10-nix-fonts.conf".text = ''
+    <?xml version="1.0"?>
+    <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+    <fontconfig>
+      <dir>${config.home.homeDirectory}/.nix-profile/share/fonts</dir>
+    </fontconfig>
+  '';
 
   home.activation.createSkkDirs = lib.hm.dag.entryAfter ["writeBoundary"] ''
     mkdir -p "${config.home.homeDirectory}/.cache/skk"
