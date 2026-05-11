@@ -36,6 +36,7 @@
     trash-cli
     llama-cpp
     claude-code
+    julia-bin
   ];
 
   # import-env.sh を ~/.local/bin に配置
