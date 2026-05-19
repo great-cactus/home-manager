@@ -13,7 +13,13 @@ Nix Home Managerを使った開発環境設定の管理リポジトリ.
 
 ### パッケージ（`home.nix`で管理）
 
-`gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`
+`gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`
+
+### ローカルパッケージ（`pkgs/`で管理）
+
+| パッケージ | 対象OS | 説明 |
+|-----------|--------|------|
+| `pkgs/oneapi/` | Linux | Intel oneAPI（BaseKit + HPCKit）。`ifx`, `icx`, `mpirun` 等をFHS環境ラッパー経由で提供 |
 
 ---
 
@@ -112,6 +118,9 @@ nix flake update
 ├── home.nix               # Home Manager設定のルート
 ├── scripts/
 │   └── import-env.sh      # .envファイル読み込みスクリプト
+├── pkgs/
+│   └── oneapi/
+│       └── default.nix    # Intel oneAPIパッケージ（FHS環境ラッパー付き）
 └── modules/
     ├── zsh/
     │   ├── default.nix    # zsh本体設定
