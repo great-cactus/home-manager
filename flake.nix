@@ -22,7 +22,9 @@
           "oneapi"
         ];
       };
+      username = builtins.getEnv "USER";
     in
+    assert username != "" || builtins.throw "USER environment variable is not set. Run with --impure flag.";
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -37,16 +39,16 @@
           pkgs = mkPkgs "x86_64-linux";
           modules = [ ./home.nix ];
           extraSpecialArgs = {
-            username = "tnd";
-            homeDirectory = "/home/tnd";
+            inherit username;
+            homeDirectory = "/home/${username}";
           };
         };
         "macos" = home-manager.lib.homeManagerConfiguration {
           pkgs = mkPkgs "aarch64-darwin";
           modules = [ ./home.nix ];
           extraSpecialArgs = {
-            username = "akiratsunoda";
-            homeDirectory = "/Users/akiratsunoda";
+            inherit username;
+            homeDirectory = "/Users/${username}";
           };
         };
       };
