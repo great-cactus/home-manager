@@ -38,6 +38,9 @@
     claude-code
     julia-bin
     ffmpeg
+    cmake
+    gnumake
+    ninja
   ] ++ lib.optionals stdenv.isLinux [
     (callPackage ./pkgs/oneapi {})
   ];
