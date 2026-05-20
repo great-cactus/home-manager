@@ -8,10 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Linux (x86_64)
-nix run .#homeConfigurations.linux.activationPackage
+nix run --impure .#homeConfigurations.linux.activationPackage
 
 # macOS (Apple Silicon)
-nix run .#homeConfigurations.macos.activationPackage
+nix run --impure .#homeConfigurations.macos.activationPackage
 ```
 
 ### 依存パッケージの更新
@@ -30,7 +30,7 @@ nix develop
 
 ### エントリーポイント
 
-- `flake.nix`: Flake定義。`nixpkgs`, `home-manager`, `claude-code-nix` を依存に持ち、`linux`（x86_64）と `macos`（aarch64）の2環境を定義する。ユーザー名とホームディレクトリは環境ごとに `extraSpecialArgs` で渡され、`home.nix` 内には直書きしない。
+- `flake.nix`: Flake定義。`nixpkgs`, `home-manager`, `claude-code-nix` を依存に持ち、`linux`（x86_64）と `macos`（aarch64）の2環境を定義する。ユーザー名は `builtins.getEnv "USER"` で環境変数から取得し（`--impure` フラグ必須）、ホームディレクトリはシステムに応じて自動導出される。`home.nix` 内には直書きしない。
 - `home.nix`: Home Manager設定のルート。パッケージ一覧・セッション変数・activation scriptはここで管理する。`modules/zsh`, `modules/neovim`, `modules/claude` をインポートする（`modules/obsidian` は現在インポートされていない）。
 
 ### モジュール構成

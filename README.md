@@ -9,17 +9,16 @@ Nix Home Managerを使った開発環境設定の管理リポジトリ.
 | `modules/zsh/` | zsh設定（エイリアス・カスタム関数） |
 | `modules/neovim/` | Neovim設定（dein.vimプラグイン・LSP・スニペット等） |
 | `modules/claude/` | Claude Code設定（ルール・スキル） |
-| `modules/obsidian/` | Obsidian Vault用ルール・スキル |
 
 ### パッケージ（`home.nix`で管理）
 
-`gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`
+`corefonts`, `gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`, `cmake`, `gnumake`, `ninja`
 
 ### ローカルパッケージ（`pkgs/`で管理）
 
 | パッケージ | 対象OS | 説明 |
 |-----------|--------|------|
-| `pkgs/oneapi/` | Linux | Intel oneAPI（BaseKit + HPCKit）。`ifx`, `icx`, `mpirun` 等をFHS環境ラッパー経由で提供 |
+| `pkgs/oneapi/` | Linux | Intel oneAPI（BaseKit + HPCKit）.`ifx`, `icx`, `mpirun` 等をFHS環境ラッパー経由で提供 |
 
 ---
 
@@ -56,10 +55,10 @@ EOF
 
 ```bash
 # Linux (x86_64)
-nix run .#homeConfigurations.linux.activationPackage
+nix run --impure ".#homeConfigurations.linux.activationPackage"
 
 # macOS (Apple Silicon)
-nix run .#homeConfigurations.macos.activationPackage
+nix run --impure .#homeConfigurations.macos.activationPackage
 ```
 
 > ユーザー名とホームディレクトリは `flake.nix` の `extraSpecialArgs` で環境ごとに定義されているため,`home.nix` の編集は不要.
@@ -94,11 +93,11 @@ exec zsh
 ### 設定変更後の適用
 
 ```bash
-# Linux
-nix run .#homeConfigurations.linux.activationPackage
+# Linux (x86_64)
+nix run --impure ".#homeConfigurations.linux.activationPackage"
 
-# macOS
-nix run .#homeConfigurations.macos.activationPackage
+# macOS (Apple Silicon)
+nix run --impure .#homeConfigurations.macos.activationPackage
 ```
 
 ### 依存パッケージの更新
@@ -137,19 +136,20 @@ nix flake update
     │       │   ├── config/    # 機能別設定（スクロール・補完・LSP切替等）
     │       │   ├── lsp/       # LSP設定（pylsp, lua_ls, ltex, texlab 等）
     │       │   └── plugins/   # プラグイン設定（codecompanion, obsidian 等）
-    │       ├── queries/   # Treesitter クエリ（highlights・injections）
+    │       ├── queries/   # Treesitter クエリ（highlights・injections・toml用）
     │       ├── snippets/  # スニペット（Fortran, LaTeX, Markdown 等）
     │       └── templates/ # ファイルテンプレート（Python, TeX 等）
-    ├── claude/
-    │   ├── default.nix    # ~/.claude/ へのシンボリックリンク定義
-    │   ├── rules/         # Claude Codeの行動ルール（14ファイル）
-    │   └── skills/        # Claude Codeのカスタムスキル
-    │       ├── coding-standards/
-    │       ├── smart-commit/
-    │       └── obsidian-create-permanent-note/
-    └── obsidian/
-        ├── rules/         # Obsidian Vault向けルール
-        └── skills/        # Obsidian Vault向けスキル
+    └── claude/
+        ├── default.nix    # ~/.claude/ へのシンボリックリンク定義
+        ├── rules/         # Claude Codeの行動ルール（14ファイル）
+        └── skills/        # Claude Codeのカスタムスキル
+            ├── coding-standards/
+            ├── smart-commit/
+            ├── obsidian-create-permanent-note/
+            ├── review-clarity/
+            ├── review-coherence/
+            ├── review-correctness/
+            └── review-impact/
 ```
 
 ---
@@ -198,7 +198,7 @@ nix run .#homeConfigurations.linux.activationPackage
 
 ### zsh切替後にNix管理のコマンドが見つからない
 
-zshをデフォルトシェルにした後、`vim`・`gh`・`claude-code`等が `command not found` になる場合は、Nixプロファイルが初期化されていない。`modules/zsh/default.nix` の `profileExtra` に以下が含まれているか確認する：
+zshをデフォルトシェルにした後,`vim`・`gh`・`claude-code`等が `command not found` になる場合は,Nixプロファイルが初期化されていない.`modules/zsh/default.nix` の `profileExtra` に以下が含まれているか確認する：
 
 ```nix
 profileExtra = ''
