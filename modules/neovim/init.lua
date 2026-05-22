@@ -126,8 +126,13 @@ vim.keymap.set({ 'n', 'v' }, 'L', '$')
 vim.keymap.set({ 'n', 'v' }, 'H', '^')
 vim.keymap.set({ 'n', 'v' }, '$', '<Nop>')
 vim.keymap.set({ 'n', 'v' }, '^', '<Nop>')
-vim.keymap.set('n', 'gj', 'gj', { noremap = true })
-vim.keymap.set('n', 'gk', 'gk', { noremap = true })
+-- Visual line submode: gj/gk後、timeoutlen以内のj/kはgj/gkとして動作
+-- ref: https://zenn.dev/mattn/articles/83c2d4c7645faa
+vim.keymap.set('n', 'gj', '<Cmd>normal! gj<CR><Plug>(vline)', { remap = true })
+vim.keymap.set('n', 'gk', '<Cmd>normal! gk<CR><Plug>(vline)', { remap = true })
+vim.keymap.set('n', '<Plug>(vline)j', '<Cmd>normal! gj<CR><Plug>(vline)', { remap = true })
+vim.keymap.set('n', '<Plug>(vline)k', '<Cmd>normal! gk<CR><Plug>(vline)', { remap = true })
+vim.keymap.set('n', '<Plug>(vline)', '<Nop>')
 vim.keymap.set('n', 'n', 'mNn')
 
 -- Keymaps: US keyboard
