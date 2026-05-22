@@ -9,6 +9,7 @@ Nix Home Managerを使った開発環境設定の管理リポジトリ.
 | `modules/zsh/` | zsh設定（エイリアス・カスタム関数） |
 | `modules/neovim/` | Neovim設定（dein.vimプラグイン・LSP・スニペット等） |
 | `modules/claude/` | Claude Code設定（ルール・スキル） |
+| `modules/wezterm/` | WezTerm設定（WSL環境でWindows側へコピー） |
 
 ### パッケージ（`home.nix`で管理）
 
@@ -139,17 +140,22 @@ nix flake update
     │       ├── queries/   # Treesitter クエリ（highlights・injections・toml用）
     │       ├── snippets/  # スニペット（Fortran, LaTeX, Markdown 等）
     │       └── templates/ # ファイルテンプレート（Python, TeX 等）
-    └── claude/
-        ├── default.nix    # ~/.claude/ へのシンボリックリンク定義
-        ├── rules/         # Claude Codeの行動ルール（14ファイル）
-        └── skills/        # Claude Codeのカスタムスキル
-            ├── coding-standards/
-            ├── smart-commit/
-            ├── obsidian-create-permanent-note/
-            ├── review-clarity/
-            ├── review-coherence/
-            ├── review-correctness/
-            └── review-impact/
+    ├── claude/
+    │   ├── default.nix    # ~/.claude/ へのシンボリックリンク定義
+    │   ├── rules/         # Claude Codeの行動ルール（14ファイル）
+    │   └── skills/        # Claude Codeのカスタムスキル
+    │       ├── coding-standards/
+    │       ├── smart-commit/
+    │       ├── obsidian-create-permanent-note/
+    │       ├── review-clarity/
+    │       ├── review-coherence/
+    │       ├── review-correctness/
+    │       └── review-impact/
+    └── wezterm/
+        ├── default.nix    # home.activationでWindows側へコピー
+        ├── wezterm.lua    # メイン設定
+        ├── keybinds.lua   # キーバインド（Leader=Ctrl-q）
+        └── workspace.lua  # ワークスペース管理
 ```
 
 ---
