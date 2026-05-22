@@ -292,14 +292,19 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'ColorScheme' }, {
   callback = setup_statusline_hl,
 })
 
+-- Big file detection (must run before FileType-based treesitter/fold setup)
+require('config.bigfile').setup()
+
 -- Tree-sitter: native highlight and fold (nvim 0.12 built-in)
 vim.api.nvim_create_autocmd('FileType', {
   callback = function(args)
     pcall(vim.treesitter.start, args.buf)
+    -- Set treesitter foldexpr per-buffer (not globally, to avoid cost on
+    -- terminal/bigfile/no-parser buffers)
+    vim.wo[0].foldmethod = 'expr'
+    vim.wo[0].foldexpr = 'v:lua.vim.treesitter.foldexpr()'
   end,
 })
-vim.opt.foldmethod = 'expr'
-vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 vim.opt.foldenable = false
 
 -- Colorscheme (standalone, no plugin dependency)
