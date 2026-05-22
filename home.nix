@@ -22,6 +22,7 @@
     ./modules/zsh
     ./modules/neovim
     ./modules/claude
+    ./modules/wezterm
   ];
 
   home.packages = with pkgs; [
@@ -50,6 +51,10 @@
     source = ./scripts/import-env.sh;
     executable = true;
   };
+
+  # WezTerm terminfo (SSH経由でもundercurl/色付き下線を有効にする)
+  home.file.".terminfo/w/wezterm".source =
+    "${pkgs.wezterm.terminfo}/share/terminfo/w/wezterm";
 
   home.sessionVariables = {
     EDITOR = "nvim";
