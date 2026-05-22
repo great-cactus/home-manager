@@ -91,8 +91,24 @@ vim.opt.autochdir      = true
 vim.opt.laststatus     = 0
 vim.opt.statusline     = "%{repeat('─',winwidth('.'))}"
 
--- Clipboard
+-- Clipboard (OSC 52: works over SSH, supported by WezTerm)
 vim.opt.clipboard = 'unnamedplus'
+
+-- SSH接続時はOSC 52でクリップボード連携する
+if os.getenv('SSH_CONNECTION') then
+  local osc52 = require('vim.ui.clipboard.osc52')
+  vim.g.clipboard = {
+    name = 'OSC 52',
+    copy = {
+      ['+'] = osc52.copy('+'),
+      ['*'] = osc52.copy('*'),
+    },
+    paste = {
+      ['+'] = osc52.paste('+'),
+      ['*'] = osc52.paste('*'),
+    },
+  }
+end
 
 -- Persistent undo
 if vim.fn.has('persistent_undo') == 1 then
