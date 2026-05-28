@@ -36,8 +36,7 @@ require("obsidian").setup{
     insert_link = "<C-l>",
   },
   completion = {
-    nvim_cmp = false,
-    min_chars = 2,
+    min_chars = 3,
   },
   footer = {
     enabled = false, -- turn it off

@@ -322,28 +322,6 @@ repo = 'Shougo/pum.vim'
 on_source = 'ddc.vim'
 
 [[plugins]]
-repo = 'shutils/ddc-source-obsidian'
-on_source = 'ddc.vim'
-on_if = 'expand("%:p") =~# "^" . expand("$OBSIDIAN_PATH") . ".*\\.md$"'
-hook_source = '''
-call ddc#custom#patch_filetype('markdown', #{
-  \ sources: [ 'obsidian_tag', 'obsidian_link' ],
-  \ sourceParams: #{
-  \   obsidian_tag: #{ vault: expand('$OBSIDIAN_PATH') },
-  \   obsidian_link: #{ vault: expand('$OBSIDIAN_PATH') },
-  \},
-  \ sourceOptions: #{
-  \  obsidian_tag: #{
-  \    mark: '[OBS-TAG]',
-  \  },
-  \  obsidian_link: #{
-  \    mark: '[OBS-LINK]',
-  \  },
-  \},
-\})
-'''
-
-[[plugins]]
 repo = 'Shougo/ddc-ui-pum'
 on_source = 'ddc.vim'
 hook_add = '''
