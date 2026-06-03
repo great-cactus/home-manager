@@ -324,5 +324,13 @@ require('config.smart_scroll').setup({
   key_repeat  = 0.05,
   cursor_pos  = 0.25,
 })
-require('config.thino').setup()
 require('config.one_sentence_per_line').setup()
+require('config.runner').setup({
+  run_key = '<F5>',
+  output_key = '<leader>ro',
+  stop_key = '<Esc>',
+  filetype = {
+    python = "cd $dir && uv run $fileName",
+    tex    = "cd $dir && latexmk $fileName",
+  }
+})
