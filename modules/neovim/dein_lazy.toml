@@ -191,7 +191,8 @@ let g:denops#server#deno_args = [
 repo = 'skk-dev/dict'
 
 [[plugins]]
-repo = 'vim-skk/skkeleton'
+repo = 'great-cactus/skkeleton'
+rev = 'd55648db75f5ab02eea035d8f52f73432426dcd8'
 depends = ['denops.vim', 'dict']
 denops_wait = false
 on_map = { ictn = '<Plug>(skkeleton-'}
@@ -209,6 +210,14 @@ call skkeleton#config(#{
   \sources               : ['deno_kv', 'google_japanese_input'],
   \registerConvertResult : v:true,
   \eggLikeNewline        : v:true,
+  \llmEnabled            : v:true,
+  \llmProvider           : 'local',
+  \llmEndpoint           : 'http://localhost:8080',
+  \llmTimeoutMs          : 100,
+  \llmFallbackEnabled    : v:true,
+  \llmFallbackTimeoutMs  : 500,
+  \llmContextLines       : 5,
+  \llmRerankMaxCandidates: 5,
   \})
 
 autocmd MyAutoCmd User skkeleton-enable-pre call s:skkeleton_pre()
