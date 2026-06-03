@@ -42,6 +42,7 @@
     cmake
     gnumake
     ninja
+    evince
   ] ++ lib.optionals stdenv.isLinux [
     (callPackage ./pkgs/oneapi {})
   ];
