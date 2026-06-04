@@ -80,10 +80,63 @@ repo = 'kylechui/nvim-surround'
 tag = '*'
 on_event = [ 'ModeChanged' ]
 lua_source = '''
--- 1. グローバル設定 (基本機能の有効化)
+  -- 1. グローバル設定
   require("nvim-surround").setup({})
 
-  -- 2. TeX用設定を行う関数を定義
+  -- 2. ヘルパー: ビジュアル選択範囲を取得 (0-indexed, end_col は exclusive)
+  local function get_visual_range()
+    local sr, sc = vim.fn.line("v") - 1, vim.fn.col("v") - 1
+    local er, ec = vim.fn.line(".") - 1, vim.fn.col(".")
+    if sr > er or (sr == er and sc > ec - 1) then
+      sr, er = er, sr
+      sc, ec = ec - 1, sc + 1
+    end
+    return sr, sc, er, ec
+  end
+
+  -- 3. Markdown 用トグル (bold ** / italic *)
+  --    全体が囲まれていれば除去、そうでなければ内部マーカーを除去して全体を囲む
+  local function toggle_md_format(prefix, suffix)
+    local plen, slen = #prefix, #suffix
+    return function()
+      local sr, sc, er, ec = get_visual_range()
+      local lines = vim.api.nvim_buf_get_text(0, sr, sc, er, ec, {})
+      local text = table.concat(lines, "\n")
+      local new_text
+
+      if #text >= plen + slen and text:sub(1, plen) == prefix and text:sub(-slen) == suffix then
+        new_text = text:sub(plen + 1, -(slen + 1))
+      elseif plen == 1 then
+        -- italic: ** を退避してから * を除去
+        new_text = "*" .. text:gsub("%*%*", "\0\0"):gsub("%*", ""):gsub("\0\0", "**") .. "*"
+      else
+        new_text = "**" .. text:gsub("%*%*", "") .. "**"
+      end
+
+      vim.cmd([[execute "normal! \<Esc>"]])
+      vim.api.nvim_buf_set_text(0, sr, sc, er, ec, vim.split(new_text, "\n", { plain = true }))
+    end
+  end
+
+  -- 4. TeX 用トグル (\textbf{}, \textit{}, \mathrm{})
+  local function toggle_tex_format(cmd)
+    local prefix = "\\" .. cmd .. "{"
+    local pat_full = "^\\" .. cmd .. "{(.*)}$"
+    local pat_inner = "\\" .. cmd .. "{(.-)}"
+    return function()
+      local sr, sc, er, ec = get_visual_range()
+      local lines = vim.api.nvim_buf_get_text(0, sr, sc, er, ec, {})
+      local text = table.concat(lines, "\n")
+
+      local inner = text:match(pat_full)
+      local new_text = inner or (prefix .. text:gsub(pat_inner, "%1") .. "}")
+
+      vim.cmd([[execute "normal! \<Esc>"]])
+      vim.api.nvim_buf_set_text(0, sr, sc, er, ec, vim.split(new_text, "\n", { plain = true }))
+    end
+  end
+
+  -- 5. TeX 用セットアップ
   local function setup_tex_surround()
     require("nvim-surround").buffer_setup({
       surrounds = {
@@ -92,12 +145,12 @@ lua_source = '''
         ["m"] = { add = { "\\mathrm{", "}" } },
       },
     })
-    -- キーマップ (buffer=true で現在のバッファのみ)
-    vim.keymap.set("x", "<C-b>", "Sl", { remap = true, buffer = true, desc = "Bold" })
-    vim.keymap.set("x", "<C-i>", "Si", { remap = true, buffer = true, desc = "Italic" })
-    vim.keymap.set("x", "<C-m>", "Sm", { remap = true, buffer = true, desc = "mathrm" })
+    vim.keymap.set("x", "<C-b>", toggle_tex_format("textbf"), { buffer = true, desc = "Toggle Bold" })
+    vim.keymap.set("x", "<C-i>", toggle_tex_format("textit"), { buffer = true, desc = "Toggle Italic" })
+    vim.keymap.set("x", "<C-m>", toggle_tex_format("mathrm"), { buffer = true, desc = "Toggle mathrm" })
   end
 
+  -- 6. Markdown 用セットアップ
   local function setup_markdown_surround()
     require("nvim-surround").buffer_setup({
       surrounds = {
@@ -105,12 +158,11 @@ lua_source = '''
         ["i"] = { add = { "*", "*" } },
       },
     })
-    -- キーマップ (buffer=true で現在のバッファのみ)
-    vim.keymap.set("x", "<C-b>", "Sl", { remap = true, buffer = true, desc = "Bold" })
-    vim.keymap.set("x", "<C-i>", "Si", { remap = true, buffer = true, desc = "Italic" })
+    vim.keymap.set("x", "<C-b>", toggle_md_format("**", "**"), { buffer = true, desc = "Toggle Bold" })
+    vim.keymap.set("x", "<C-i>", toggle_md_format("*", "*"), { buffer = true, desc = "Toggle Italic" })
   end
 
-  -- 3. 自動コマンドを作成 (これから開くファイル用)
+  -- 7. 自動コマンド (これから開くファイル用)
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "tex",
     group = vim.api.nvim_create_augroup("MyTexSurround", { clear = true }),
@@ -118,12 +170,12 @@ lua_source = '''
   })
 
   vim.api.nvim_create_autocmd("FileType", {
-    pattern = 'markdown',
-    group = vim.api.nvim_create_augroup("MyMarkdownSurround", { clear = true}),
+    pattern = "markdown",
+    group = vim.api.nvim_create_augroup("MyMarkdownSurround", { clear = true }),
     callback = setup_markdown_surround,
-})
+  })
 
-  -- 4. 今開いているファイルがTeXなら即適用 (起動時のファイル用)
+  -- 8. 今開いているファイルに即適用 (起動時のファイル用)
   if vim.bo.filetype == "tex" then
     setup_tex_surround()
   end
