@@ -95,18 +95,23 @@ vim.opt.statusline     = "%{repeat('─',winwidth('.'))}"
 vim.opt.clipboard = 'unnamedplus'
 
 if vim.fn.has('wsl') == 1 then
-  -- WSL2: clip.exe (copy) + powershell.exe Get-Clipboard (paste)
+  -- WSL2: clip.exe (copy) + powershell.exe (paste)
+  -- Lua functions avoid spawning powershell.exe at startup
+  local function wsl_paste()
+    local output = vim.fn.systemlist({ 'powershell.exe', '-NoProfile', '-Command', 'Get-Clipboard' })
+    return output
+  end
   vim.g.clipboard = {
     name = 'WSL Clipboard',
     copy = {
-      ['+'] = '/mnt/c/Windows/System32/clip.exe',
-      ['*'] = '/mnt/c/Windows/System32/clip.exe',
+      ['+'] = function(lines) vim.fn.system('clip.exe', table.concat(lines, '\n')) end,
+      ['*'] = function(lines) vim.fn.system('clip.exe', table.concat(lines, '\n')) end,
     },
     paste = {
-      ['+'] = '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d "\\r"',
-      ['*'] = '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d "\\r"',
+      ['+'] = wsl_paste,
+      ['*'] = wsl_paste,
     },
-    cache_enabled = false,
+    cache_enabled = true,
   }
 elseif os.getenv('SSH_CONNECTION') then
   -- SSH: OSC 52
