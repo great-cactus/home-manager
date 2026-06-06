@@ -193,39 +193,26 @@ hook_add = '''
 nnoremap <silent> <leader>md <Plug>MarkdownPreview
 '''
 
-#_____________________________________________________________ Start Copilot
-[[plugins]]
-repo = 'github/copilot.vim'
-on_cmd = 'Copilot'
-hook_source = '''
-  let g:copilot_node_command = expand( '~/.nodejs/bin/node' )
-  let g:copilot_no_maps = v:true
-  let g:copilot_hide_during_completion = 0
-  imap <silent><expr> <C-g> copilot#Accept()
-  imap <silent><expr> <C-n> copilot#Next()
-  imap <silent><expr> <C-p> copilot#Previous()
-
-  let g:copilot_filetypes = #{
-    \   gitcommit: v:true,
-    \   markdown: v:true,
-    \   python: v:true,
-    \   vim: v:true,
-    \}
-'''
-
 [[plugins]]
 repo = 'nvim-lua/plenary.nvim'
 
+#_____________________________________________________________ Start Copilot
 [[plugins]]
-repo = 'olimorris/codecompanion.nvim'
-depends = ['plenary.nvim', 'copilot.vim']
-on_cmd = ['CodeCompanion', 'CodeCompanionChat', 'CodeCompanionActions']
-hook_add = '''
-nnoremap <leader>cc :CodeCompanionChat<CR>
-nnoremap <leader>ca :CodeCompanionActions<CR>
+repo = 'zbirenbaum/copilot.lua'
+on_event = 'InsertEnter'
+lua_source = '''
+require('plugins.copilot')
+'''
+
+[[plugins]]
+repo = 'copilotlsp-nvim/copilot-lsp'
+depends = ['copilot.lua']
+on_source = 'copilot.lua'
+lua_add = '''
+vim.g.copilot_nes_debounce = 500
 '''
 lua_source = '''
-require('plugins.codecompanion')
+require("copilot-lsp").setup()
 '''
 #_____________________________________________________________ End Copilot
 

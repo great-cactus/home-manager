@@ -53,6 +53,7 @@ in {
       lua-language-server                # lua_ls
       nil                                # nil_ls
       fortls
+      copilot-language-server            # copilot_ls (NES)
     ];
   };
 
