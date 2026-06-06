@@ -231,7 +231,7 @@ repo = 'skk-dev/dict'
 
 [[plugins]]
 repo = 'great-cactus/skkeleton'
-rev = 'd55648db75f5ab02eea035d8f52f73432426dcd8'
+rev = 'feature/llm'
 depends = ['denops.vim', 'dict']
 denops_wait = false
 on_map = { ictn = '<Plug>(skkeleton-'}
@@ -252,7 +252,7 @@ call skkeleton#config(#{
   \llmEnabled            : v:true,
   \llmProvider           : 'local',
   \llmEndpoint           : 'http://localhost:8080',
-  \llmTimeoutMs          : 100,
+  \llmTimeoutMs          : 1000,
   \llmFallbackEnabled    : v:true,
   \llmFallbackTimeoutMs  : 500,
   \llmContextLines       : 5,
