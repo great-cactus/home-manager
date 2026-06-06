@@ -8,12 +8,12 @@ Nix Home Managerを使った開発環境設定の管理リポジトリ.
 |------------|----------|
 | `modules/zsh/` | zsh設定（エイリアス・カスタム関数） |
 | `modules/neovim/` | Neovim設定（dein.vimプラグイン・LSP・スニペット等） |
-| `modules/claude/` | Claude Code設定（ルール・スキル） |
+| `modules/claude/` | Claude Code設定（ルール・スキル・settings.json） |
 | `modules/wezterm/` | WezTerm設定（WSL環境でWindows側へコピー） |
 
 ### パッケージ（`home.nix`で管理）
 
-`corefonts`, `gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`, `cmake`, `gnumake`, `ninja`
+`corefonts`, `gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`, `cmake`, `gnumake`, `ninja`, `evince`
 
 ### ローカルパッケージ（`pkgs/`で管理）
 
@@ -136,12 +136,12 @@ nix flake update
     │       ├── lua/
     │       │   ├── config/    # 機能別設定（スクロール・補完・LSP切替等）
     │       │   ├── lsp/       # LSP設定（pylsp, lua_ls, ltex, texlab 等）
-    │       │   └── plugins/   # プラグイン設定（codecompanion, obsidian 等）
+    │       │   └── plugins/   # プラグイン設定（copilot, obsidian, outline_edit）
     │       ├── queries/   # Treesitter クエリ（highlights・injections・toml用）
     │       ├── snippets/  # スニペット（Fortran, LaTeX, Markdown 等）
     │       └── templates/ # ファイルテンプレート（Python, TeX 等）
     ├── claude/
-    │   ├── default.nix    # ~/.claude/ へのシンボリックリンク定義
+    │   ├── default.nix    # ~/.claude/ へのシンボリックリンク定義 + settings.json生成
     │   ├── rules/         # Claude Codeの行動ルール（14ファイル）
     │   └── skills/        # Claude Codeのカスタムスキル
     │       ├── coding-standards/
@@ -177,10 +177,13 @@ nix flake update
 
 `modules/claude/` はClaude Code（`~/.claude/`）の設定を管理する.
 
+- **settings.json**: `builtins.toJSON` で宣言的に生成（パーミッション・モデル設定等）
 - **rules/**: Claude Codeが参照する行動ルール（コーディングスタイル・セキュリティ・テスト・Obsidian連携等）
 - **skills/**: `/skill-name` で呼び出せるカスタムスキル
 
-設定変更後はHome Managerを再適用すると `~/.claude/rules/` と `~/.claude/skills/` が更新される.
+設定変更後はHome Managerを再適用すると `~/.claude/settings.json`, `~/.claude/rules/`, `~/.claude/skills/` が更新される.
+
+> **注意**: `settings.json` はNixストアへの読み取り専用シンボリックリンクになるため,Claude Codeの実行時変更（`/update-config`等）は反映されない.設定変更は `modules/claude/default.nix` を編集して再適用する.
 
 ---
 

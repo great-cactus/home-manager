@@ -41,13 +41,14 @@ nix develop
 |---|---|
 | `modules/zsh/` | zsh本体設定・エイリアス・カスタム関数 |
 | `modules/neovim/` | Neovim設定（dein.vim + Lua config + LSP + スニペット） |
-| `modules/claude/` | `~/.claude/rules/` と `~/.claude/skills/` へのシンボリックリンク定義 |
+| `modules/claude/` | `~/.claude/settings.json`（宣言的生成）・`rules/`・`skills/` の管理 |
 | `modules/wezterm/` | WezTerm設定。WSL環境では `home.activation` でWindows側（`/mnt/c/Users/<user>/.config/wezterm/`）にコピー |
 
 ### Claude モジュールの仕組み
 
-`modules/claude/default.nix` は `home.file` を使って `modules/claude/rules/*.md` と `modules/claude/skills/*/SKILL.md` を `~/.claude/` 以下に配置する。**ファイルを追加・削除した場合は必ず `default.nix` の `home.file` マッピングも更新すること。**
+`modules/claude/default.nix` は `home.file` を使って `settings.json`・`rules/*.md`・`skills/*/SKILL.md` を `~/.claude/` 以下に配置する。**ファイルを追加・削除した場合は必ず `default.nix` の `home.file` マッピングも更新すること。**
 
+- `settings.json`: `builtins.toJSON` で宣言的に生成（パーミッション・モデル設定等）。読み取り専用シンボリックリンクになるため実行時変更不可
 - `rules/`: Claude Codeがグローバルルールとして参照する `.md` ファイル群
 - `skills/`: `/skill-name` で呼び出せるカスタムスキル（各ディレクトリに `SKILL.md` 1ファイル）
 
