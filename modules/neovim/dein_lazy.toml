@@ -200,6 +200,7 @@ repo = 'nvim-lua/plenary.nvim'
 [[plugins]]
 repo = 'zbirenbaum/copilot.lua'
 on_event = 'InsertEnter'
+on_cmd = 'Copilot'
 lua_source = '''
 require('plugins.copilot')
 '''
@@ -212,6 +213,11 @@ lua_add = '''
 vim.g.copilot_nes_debounce = 500
 '''
 lua_source = '''
+vim.lsp.config('copilot_ls', {
+  cmd = { 'copilot-language-server', '--stdio' },
+  root_markers = { '.git' },
+})
+vim.lsp.enable('copilot_ls')
 require("copilot-lsp").setup()
 '''
 #_____________________________________________________________ End Copilot
