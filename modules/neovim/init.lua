@@ -91,11 +91,25 @@ vim.opt.autochdir      = true
 vim.opt.laststatus     = 0
 vim.opt.statusline     = "%{repeat('─',winwidth('.'))}"
 
--- Clipboard (OSC 52: works over SSH, supported by WezTerm)
+-- Clipboard
 vim.opt.clipboard = 'unnamedplus'
 
--- SSH接続時はOSC 52でクリップボード連携する
-if os.getenv('SSH_CONNECTION') then
+if vim.fn.has('wsl') == 1 then
+  -- WSL2: clip.exe (copy) + powershell.exe Get-Clipboard (paste)
+  vim.g.clipboard = {
+    name = 'WSL Clipboard',
+    copy = {
+      ['+'] = '/mnt/c/Windows/System32/clip.exe',
+      ['*'] = '/mnt/c/Windows/System32/clip.exe',
+    },
+    paste = {
+      ['+'] = '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d "\\r"',
+      ['*'] = '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d "\\r"',
+    },
+    cache_enabled = false,
+  }
+elseif os.getenv('SSH_CONNECTION') then
+  -- SSH: OSC 52
   local osc52 = require('vim.ui.clipboard.osc52')
   vim.g.clipboard = {
     name = 'OSC 52',
