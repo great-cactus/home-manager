@@ -1,7 +1,73 @@
 { config, pkgs, ... }:
 
+let
+  claudeSettings = {
+    permissions = {
+      allow = [
+        "Edit"
+        "Write"
+        "NotebookEdit"
+        "WebSearch"
+        "WebFetch"
+        "Agent"
+        "Bash(git add *)"
+        "Bash(git commit *)"
+        "Bash(git checkout *)"
+        "Bash(git branch *)"
+        "Bash(git merge *)"
+        "Bash(git stash *)"
+        "Bash(git log *)"
+        "Bash(git diff *)"
+        "Bash(npm run *)"
+        "Bash(npm test *)"
+        "Bash(npm install *)"
+        "Bash(npx *)"
+        "Bash(pnpm *)"
+        "Bash(nix *)"
+        "Bash(node *)"
+        "Bash(python *)"
+        "Bash(python3 *)"
+        "Bash(pip *)"
+        "Bash(cargo *)"
+        "Bash(gh *)"
+        "Bash(mkdir *)"
+        "Bash(touch *)"
+        "Bash(mv *)"
+        "Bash(cp *)"
+        "Bash(* --version)"
+        "Bash(* --help)"
+      ];
+      deny = [
+        "Bash(rm -rf /*)"
+        "Bash(rm -rf ~*)"
+        "Bash(dd if=* of=/dev/*)"
+        "Bash(mkfs*)"
+        "Bash(fdisk*)"
+        "Bash(parted*)"
+        "Bash(shred*)"
+        "Bash(git push --force*)"
+        "Bash(git push -f*)"
+        "Bash(git reset --hard*)"
+        "Bash(chmod -R 777*)"
+        "Bash(sudo rm*)"
+        "Bash(sudo dd*)"
+        "Bash(curl * | sh)"
+        "Bash(curl * | bash)"
+        "Bash(wget * | sh)"
+        "Bash(wget * | bash)"
+        "Read(./.env)"
+        "Read(./.env.*)"
+      ];
+    };
+    model = "opus";
+    effortLevel = "high";
+    skipDangerousModePermissionPrompt = true;
+  };
+in
 {
   home.file = {
+    # Settings
+    ".claude/settings.json".text = builtins.toJSON claudeSettings;
     # Rules
     ".claude/rules/agents.md".source            = ./rules/agents.md;
     ".claude/rules/annotation_by_LLM.md".source = ./rules/annotation_by_LLM.md;
