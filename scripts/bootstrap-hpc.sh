@@ -32,11 +32,13 @@ if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
   echo "[info] Added ~/.local/bin to PATH for this session"
 fi
 
-# 3. Nixストア用ディレクトリを作成 & サンドボックス無効化
+# 3. Nixストア用ディレクトリを作成 & ランタイム設定
+#    - NP_LOCATION: Lustre上ではxattr操作に失敗するためローカルディスクを使用
+#    - NP_RUNTIME:  bwrapはマウント名前空間を要求するためprootを使用
 mkdir -p "$NP_STORE"
 export NP_LOCATION="$NP_STORE"
-export NIX_CONFIG="sandbox = false"
-echo "[info] Nix store location: $NP_STORE"
+export NP_RUNTIME=proot
+echo "[info] Nix store: $NP_STORE (runtime: proot)"
 
 # 4. リポジトリのクローン
 if [ -d "$REPO_DIR" ]; then
@@ -56,17 +58,14 @@ fi
 cat > "$ENV_SETUP" << 'ENVEOF'
 # nix-portable 環境変数（.zshrc や .bashrc から source する）
 export NP_LOCATION="/tmp/$USER/nix-portable"
-export NIX_CONFIG="sandbox = false"
+export NP_RUNTIME=proot
 export PATH="$HOME/.local/bin:$PATH"
 ENVEOF
 echo "[done] Created $ENV_SETUP"
 
-# 6. 既存のランタイムキャッシュをクリア（NP_LOCATION変更時の不整合回避）
-rm -f "$NP_STORE/.nix-portable/conf/nix.conf" 2>/dev/null || true
-
-# 7. Home Manager の適用
+# 6. Home Manager の適用
 echo "[3/5] Applying Home Manager configuration..."
-nix-portable nix run --option sandbox false --impure .#homeConfigurations.hpc.activationPackage
+nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
 
 echo "[4/5] Setup complete!"
 echo ""
