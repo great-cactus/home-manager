@@ -68,6 +68,7 @@ in
   home.file = {
     # Settings
     ".claude/settings.json".text = builtins.toJSON claudeSettings;
+    ".claude/settings.json".force = true;
     # Rules
     ".claude/rules/agents.md".source            = ./rules/agents.md;
     ".claude/rules/annotation_by_LLM.md".source = ./rules/annotation_by_LLM.md;
