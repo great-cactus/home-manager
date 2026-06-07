@@ -13,8 +13,9 @@ curl -sL https://raw.githubusercontent.com/great-cactus/home-manager/hpc/scripts
 以下が自動で行われる：
 
 1. `nix-portable` を `~/.local/bin/` にダウンロード
-2. このリポジトリを `~/projects/home-manager` にクローン
-3. Home Manager を適用（zsh, Neovim, CLIツール一式をインストール）
+2. Nixストアを `/tmp/$USER/nix-portable/` に配置（Lustre回避）
+3. このリポジトリを `~/projects/home-manager` にクローン
+4. Home Manager を適用（zsh, Neovim, CLIツール一式をインストール）
 
 完了後 `exec zsh` で新しいシェルを起動する.
 
@@ -27,6 +28,10 @@ curl -L "https://github.com/DavHau/nix-portable/releases/latest/download/nix-por
   -o ~/.local/bin/nix-portable
 chmod +x ~/.local/bin/nix-portable
 export PATH="$HOME/.local/bin:$PATH"
+
+# Nixストアをローカルディスクに配置（Lustre上では動作しない）
+export NP_LOCATION="/tmp/$USER/nix-portable"
+mkdir -p "$NP_LOCATION"
 
 # リポジトリをクローン
 git clone -b hpc https://github.com/great-cactus/home-manager.git ~/projects/home-manager
@@ -64,6 +69,14 @@ git pull origin hpc
 nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
 ```
 
+## Lustre ファイルシステムについて
+
+多くのHPCクラスタではホームディレクトリが Lustre 上にある. Nix は `lustre.lov` 拡張属性の削除に失敗するため,Nixストアを **ローカルディスク（`/tmp`）** に配置する必要がある.
+
+- ブートストラップスクリプトは自動で `NP_LOCATION=/tmp/$USER/nix-portable` を設定する
+- zsh 起動時に `~/.local/bin/nix-portable-env.sh` を読み込み,`NP_LOCATION` を維持する
+- `/tmp` はノード再起動で消えるため,再起動後は再度 Home Manager を適用する
+
 ## 含まれるもの
 
 ### パッケージ
@@ -91,7 +104,7 @@ HPC環境では不要な以下を除外している：
 
 ```
 nix-portable
-└── ~/.nix-portable/store/   ← /nix/store の代替（ユーザ空間）
+└── /tmp/$USER/nix-portable/.nix-portable/store/  ← Lustre回避
 
 flake.nix
 ├── home.nix                 ← Linux/macOS 用（mainブランチ）
@@ -100,9 +113,16 @@ flake.nix
     └── modules/neovim/
 ```
 
-nix-portable は `/nix/store` への書き込み権限がない場合,自動的に `~/.nix-portable/store` を使う. user namespace が利用できない環境では proot にフォールバックする.
-
 ## トラブルシューティング
+
+### "removing extended attribute 'lustre.lov'" エラー
+
+`NP_LOCATION` が Lustre 上を指している. ローカルディスクに変更する：
+
+```bash
+export NP_LOCATION="/tmp/$USER/nix-portable"
+mkdir -p "$NP_LOCATION"
+```
 
 ### nix-portable が動かない
 
@@ -118,6 +138,15 @@ NP_RUNTIME=proot nix-portable nix run --impure .#homeConfigurations.hpc.activati
 
 ```bash
 mv ~/.zshrc ~/.zshrc.backup
+```
+
+### ノード再起動後にコマンドが見つからない
+
+`/tmp` のNixストアが消えているため再適用する：
+
+```bash
+cd ~/projects/home-manager
+nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
 ```
 
 ### Neovimプラグインが更新されない

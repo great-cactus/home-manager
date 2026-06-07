@@ -41,6 +41,11 @@
         [ -f ~/.local/bin/import-env.sh ] && . ~/.local/bin/import-env.sh ~/.env
       '')
       ''
+        # nix-portable: Lustreファイルシステム回避のためローカルディスクを使用
+        if [ -f "$HOME/.local/bin/nix-portable-env.sh" ]; then
+          source "$HOME/.local/bin/nix-portable-env.sh"
+        fi
+
         setopt extendedglob nomatch correct no_beep appendhistory
 
         autoload -U colors; colors
