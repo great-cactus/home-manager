@@ -52,6 +52,14 @@
             homeDirectory = "/Users/${username}";
           };
         };
+        "hpc" = home-manager.lib.homeManagerConfiguration {
+          pkgs = mkPkgs "x86_64-linux";
+          modules = [ ./home-hpc.nix ];
+          extraSpecialArgs = {
+            inherit username;
+            homeDirectory = "/home/${username}";
+          };
+        };
       };
     };
 }
