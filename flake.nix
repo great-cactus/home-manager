@@ -20,7 +20,6 @@
           "claude-code"
           "copilot-language-server"
           "corefonts"
-          "oneapi"
         ];
       };
       username = builtins.getEnv "USER";
