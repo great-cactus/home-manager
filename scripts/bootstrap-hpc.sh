@@ -32,9 +32,10 @@ if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
   echo "[info] Added ~/.local/bin to PATH for this session"
 fi
 
-# 3. Nixストア用ディレクトリを作成
+# 3. Nixストア用ディレクトリを作成 & サンドボックス無効化
 mkdir -p "$NP_STORE"
 export NP_LOCATION="$NP_STORE"
+export NIX_CONFIG="sandbox = false"
 echo "[info] Nix store location: $NP_STORE"
 
 # 4. リポジトリのクローン
@@ -55,6 +56,7 @@ fi
 cat > "$ENV_SETUP" << 'ENVEOF'
 # nix-portable 環境変数（.zshrc や .bashrc から source する）
 export NP_LOCATION="/tmp/$USER/nix-portable"
+export NIX_CONFIG="sandbox = false"
 export PATH="$HOME/.local/bin:$PATH"
 ENVEOF
 echo "[done] Created $ENV_SETUP"
