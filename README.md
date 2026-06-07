@@ -15,15 +15,19 @@ Nix Home Managerを使った開発環境設定の管理リポジトリ.
 
 `corefonts`, `gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`, `cmake`, `gnumake`, `ninja`, `evince`
 
-### ローカルパッケージ（`pkgs/`で管理）
+---
 
-| パッケージ | 対象OS | 説明 |
-|-----------|--------|------|
-| `pkgs/oneapi/` | Linux | Intel oneAPI（BaseKit + HPCKit）.`ifx`, `icx`, `mpirun` 等をFHS環境ラッパー経由で提供 |
+## 環境一覧
+
+| 環境 | ブランチ | 設定ファイル | 用途 |
+|------|---------|-------------|------|
+| linux | `main` | `home.nix` | WSL2 / デスクトップLinux |
+| macos | `main` | `home.nix` | macOS (Apple Silicon) |
+| hpc | `hpc` | `home-hpc.nix` | HPCクラスタ（rootなし・nix-portable） |
 
 ---
 
-## セットアップ
+## セットアップ（Linux / macOS）
 
 ### 1. Nixのインストール（未導入の場合）
 
@@ -62,29 +66,67 @@ nix run --impure ".#homeConfigurations.linux.activationPackage"
 nix run --impure .#homeConfigurations.macos.activationPackage
 ```
 
-> ユーザー名とホームディレクトリは `flake.nix` の `extraSpecialArgs` で環境ごとに定義されているため,`home.nix` の編集は不要.
-
 ### 5. zsh をデフォルトシェルに設定
 
 ```bash
-# /etc/shells に Nix 管理の zsh を登録
 echo ~/.nix-profile/bin/zsh | sudo tee -a /etc/shells
-
-# デフォルトシェルを変更
 chsh -s ~/.nix-profile/bin/zsh
 ```
-
-> **注意**: `~/.nix-profile/bin/zsh` がシンボリックリンクで `chsh` が拒否する場合は実体パスを使用する：
-> ```bash
-> ZSHPATH=$(readlink -f ~/.nix-profile/bin/zsh)
-> echo $ZSHPATH | sudo tee -a /etc/shells
-> chsh -s $ZSHPATH
-> ```
 
 ### 6. 新しいシェルを起動
 
 ```bash
 exec zsh
+```
+
+---
+
+## セットアップ（HPC）
+
+root権限なしのHPCクラスタ向け. [nix-portable](https://github.com/DavHau/nix-portable) を使い,`~/.nix-portable/store` にユーザ空間でNixストアを構築する.
+
+### ワンライナーセットアップ
+
+```bash
+curl -sL https://raw.githubusercontent.com/great-cactus/home-manager/hpc/scripts/bootstrap-hpc.sh | bash
+```
+
+### 手動セットアップ
+
+```bash
+# 1. nix-portable をダウンロード
+mkdir -p ~/.local/bin
+curl -L "https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-$(uname -m)" \
+  -o ~/.local/bin/nix-portable
+chmod +x ~/.local/bin/nix-portable
+export PATH="$HOME/.local/bin:$PATH"
+
+# 2. リポジトリをクローン
+git clone -b hpc https://github.com/great-cactus/home-manager.git ~/projects/home-manager
+cd ~/projects/home-manager
+
+# 3. Home Manager を適用
+nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
+
+# 4. シェルを再読み込み
+exec zsh
+```
+
+### HPC向け設定の内容
+
+`home-hpc.nix` は `home.nix` からHPC不要なものを除外した構成：
+
+- **含まれるもの**: `gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs`, `ripgrep`, `trash-cli`, `ffmpeg`, zsh, Neovim
+- **除外されたもの**: Claude Code, WezTerm, corefonts, oneAPI, evince, Copilot, Obsidian連携, LaTeX LSP
+
+WezTerm terminfo は含まれるため,WezTermからSSHしても表示が崩れない.
+
+### 設定の更新
+
+```bash
+cd ~/projects/home-manager
+git pull origin hpc
+nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
 ```
 
 ---
@@ -99,6 +141,9 @@ nix run --impure ".#homeConfigurations.linux.activationPackage"
 
 # macOS (Apple Silicon)
 nix run --impure .#homeConfigurations.macos.activationPackage
+
+# HPC
+nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
 ```
 
 ### 依存パッケージの更新
@@ -115,75 +160,17 @@ nix flake update
 .
 ├── flake.nix              # Flake定義（依存関係・環境別設定）
 ├── flake.lock             # バージョンロック（自動生成）
-├── home.nix               # Home Manager設定のルート
+├── home.nix               # Home Manager設定のルート（Linux/macOS）
+├── home-hpc.nix           # Home Manager設定（HPC用）
 ├── scripts/
-│   └── import-env.sh      # .envファイル読み込みスクリプト
-├── pkgs/
-│   └── oneapi/
-│       └── default.nix    # Intel oneAPIパッケージ（FHS環境ラッパー付き）
+│   ├── import-env.sh      # .envファイル読み込みスクリプト
+│   └── bootstrap-hpc.sh   # HPC環境セットアップスクリプト
 └── modules/
-    ├── zsh/
-    │   ├── default.nix    # zsh本体設定
-    │   ├── aliases.nix    # エイリアス定義
-    │   └── functions.nix  # カスタム関数
-    ├── neovim/
-    │   ├── default.nix    # Neovim設定（Nix）
-    │   ├── init.lua       # 起動設定
-    │   ├── dein.toml      # dein.vim プラグイン定義
-    │   ├── dein_lazy.toml # dein.vim 遅延プラグイン定義
-    │   └── nvim/
-    │       ├── colors/    # カラースキーム
-    │       ├── lua/
-    │       │   ├── config/    # 機能別設定（スクロール・補完・LSP切替等）
-    │       │   ├── lsp/       # LSP設定（pylsp, lua_ls, ltex, texlab 等）
-    │       │   └── plugins/   # プラグイン設定（copilot, obsidian, outline_edit）
-    │       ├── queries/   # Treesitter クエリ（highlights・injections・toml用）
-    │       ├── snippets/  # スニペット（Fortran, LaTeX, Markdown 等）
-    │       └── templates/ # ファイルテンプレート（Python, TeX 等）
-    ├── claude/
-    │   ├── default.nix    # ~/.claude/ へのシンボリックリンク定義 + settings.json生成
-    │   ├── rules/         # Claude Codeの行動ルール（14ファイル）
-    │   └── skills/        # Claude Codeのカスタムスキル
-    │       ├── coding-standards/
-    │       ├── smart-commit/
-    │       ├── obsidian-create-permanent-note/
-    │       ├── review-clarity/
-    │       ├── review-coherence/
-    │       ├── review-correctness/
-    │       └── review-impact/
-    └── wezterm/
-        ├── default.nix    # home.activationでWindows側へコピー
-        ├── wezterm.lua    # メイン設定
-        ├── keybinds.lua   # キーバインド（Leader=Ctrl-q）
-        └── workspace.lua  # ワークスペース管理
+    ├── zsh/               # zsh設定（エイリアス・カスタム関数）
+    ├── neovim/            # Neovim設定（dein.vim・LSP・スニペット等）
+    ├── claude/            # Claude Code設定（ルール・スキル・settings.json）
+    └── wezterm/           # WezTerm設定（WSL→Windows側コピー）
 ```
-
----
-
-## 環境別設定
-
-`flake.nix` で環境ごとにユーザー名とホームディレクトリを定義：
-
-| 環境 | ユーザー名 | ホームディレクトリ |
-|------|-----------|-------------------|
-| linux | tnd | /home/tnd |
-| macos | akiratsunoda | /Users/akiratsunoda |
-
-新しい環境を追加する場合は `flake.nix` の `homeConfigurations` に設定を追加する.
-
----
-
-## Claude Codeモジュールについて
-
-`modules/claude/` はClaude Code（`~/.claude/`）の設定を管理する.
-
-- **settings.json**: `builtins.toJSON` で宣言的に生成（パーミッション・モデル設定等）
-- **rules/**: Claude Codeが参照する行動ルール（コーディングスタイル・セキュリティ・テスト・Obsidian連携等）
-- **skills/**: `/skill-name` で呼び出せるカスタムスキル
-
-設定変更後はHome Managerを再適用すると `~/.claude/settings.json`, `~/.claude/rules/`, `~/.claude/skills/` が更新される.
-
-> **注意**: `settings.json` はNixストアへの読み取り専用シンボリックリンクになるため,Claude Codeの実行時変更（`/update-config`等）は反映されない.設定変更は `modules/claude/default.nix` を編集して再適用する.
 
 ---
 
@@ -205,21 +192,6 @@ mv ~/.zshrc ~/.zshrc.backup
 nix run .#homeConfigurations.linux.activationPackage
 ```
 
-### zsh切替後にNix管理のコマンドが見つからない
-
-zshをデフォルトシェルにした後,`vim`・`gh`・`claude-code`等が `command not found` になる場合は,Nixプロファイルが初期化されていない.`modules/zsh/default.nix` の `profileExtra` に以下が含まれているか確認する：
-
-```nix
-profileExtra = ''
-  if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
-    . ~/.nix-profile/etc/profile.d/nix.sh
-  fi
-  if [ -e ~/.nix-profile/etc/profile.d/hm-session-vars.sh ]; then
-    . ~/.nix-profile/etc/profile.d/hm-session-vars.sh
-  fi
-'';
-```
-
 ### Neovimプラグインが更新されない
 
 dein.vimのキャッシュをクリアして再起動：
@@ -236,3 +208,4 @@ nvim
 
 - [Home Manager Manual](https://nix-community.github.io/home-manager/)
 - [Nix Flakes](https://nixos.wiki/wiki/Flakes)
+- [nix-portable](https://github.com/DavHau/nix-portable)
