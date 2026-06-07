@@ -1,127 +1,62 @@
-# Home Manager Configuration
+# Home Manager for HPC
 
-Nix Home Managerを使った開発環境設定の管理リポジトリ.
+root権限なしのHPCクラスタに [nix-portable](https://github.com/DavHau/nix-portable) で開発環境を構築する.
 
-## 管理対象
+## セットアップ
 
-| モジュール | 管理内容 |
-|------------|----------|
-| `modules/zsh/` | zsh設定（エイリアス・カスタム関数） |
-| `modules/neovim/` | Neovim設定（dein.vimプラグイン・LSP・スニペット等） |
-| `modules/claude/` | Claude Code設定（ルール・スキル・settings.json） |
-| `modules/wezterm/` | WezTerm設定（WSL環境でWindows側へコピー） |
-
-### パッケージ（`home.nix`で管理）
-
-`corefonts`, `gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`, `cmake`, `gnumake`, `ninja`, `evince`
-
----
-
-## 環境一覧
-
-| 環境 | ブランチ | 設定ファイル | 用途 |
-|------|---------|-------------|------|
-| linux | `main` | `home.nix` | WSL2 / デスクトップLinux |
-| macos | `main` | `home.nix` | macOS (Apple Silicon) |
-| hpc | `hpc` | `home-hpc.nix` | HPCクラスタ（rootなし・nix-portable） |
-
----
-
-## セットアップ（Linux / macOS）
-
-### 1. Nixのインストール（未導入の場合）
-
-```bash
-curl -L https://nixos.org/nix/install | sh
-
-# Flakes有効化（~/.config/nix/nix.conf に追加）
-mkdir -p ~/.config/nix
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-```
-
-### 2. 既存設定のバックアップ
-
-```bash
-mv ~/.zshrc ~/.zshrc.backup
-```
-
-### 3. 環境変数ファイルの作成
-
-`~/.env` を作成し,動的な環境変数を定義：
-
-```bash
-cat > ~/.env << 'EOF'
-PROMPT_COLOR=cyan
-WIN_DEVICE=your-pc-name
-EOF
-```
-
-### 4. 初回適用
-
-```bash
-# Linux (x86_64)
-nix run --impure ".#homeConfigurations.linux.activationPackage"
-
-# macOS (Apple Silicon)
-nix run --impure .#homeConfigurations.macos.activationPackage
-```
-
-### 5. zsh をデフォルトシェルに設定
-
-```bash
-echo ~/.nix-profile/bin/zsh | sudo tee -a /etc/shells
-chsh -s ~/.nix-profile/bin/zsh
-```
-
-### 6. 新しいシェルを起動
-
-```bash
-exec zsh
-```
-
----
-
-## セットアップ（HPC）
-
-root権限なしのHPCクラスタ向け. [nix-portable](https://github.com/DavHau/nix-portable) を使い,`~/.nix-portable/store` にユーザ空間でNixストアを構築する.
-
-### ワンライナーセットアップ
+### ワンライナー
 
 ```bash
 curl -sL https://raw.githubusercontent.com/great-cactus/home-manager/hpc/scripts/bootstrap-hpc.sh | bash
 ```
 
+以下が自動で行われる：
+
+1. `nix-portable` を `~/.local/bin/` にダウンロード
+2. このリポジトリを `~/projects/home-manager` にクローン
+3. Home Manager を適用（zsh, Neovim, CLIツール一式をインストール）
+
+完了後 `exec zsh` で新しいシェルを起動する.
+
 ### 手動セットアップ
 
 ```bash
-# 1. nix-portable をダウンロード
+# nix-portable をダウンロード
 mkdir -p ~/.local/bin
 curl -L "https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-$(uname -m)" \
   -o ~/.local/bin/nix-portable
 chmod +x ~/.local/bin/nix-portable
 export PATH="$HOME/.local/bin:$PATH"
 
-# 2. リポジトリをクローン
+# リポジトリをクローン
 git clone -b hpc https://github.com/great-cactus/home-manager.git ~/projects/home-manager
-cd ~/projects/home-manager
 
-# 3. Home Manager を適用
+# Home Manager を適用
+cd ~/projects/home-manager
 nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
 
-# 4. シェルを再読み込み
+# シェルを再読み込み
 exec zsh
 ```
 
-### HPC向け設定の内容
+## 事前準備
 
-`home-hpc.nix` は `home.nix` からHPC不要なものを除外した構成：
+セットアップ前に `~/.env` を作成しておく：
 
-- **含まれるもの**: `gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs`, `ripgrep`, `trash-cli`, `ffmpeg`, zsh, Neovim
-- **除外されたもの**: Claude Code, WezTerm, corefonts, oneAPI, evince, Copilot, Obsidian連携, LaTeX LSP
+```bash
+cat > ~/.env << 'EOF'
+PROMPT_COLOR=green
+WIN_DEVICE=hpc-cluster
+EOF
+```
 
-WezTerm terminfo は含まれるため,WezTermからSSHしても表示が崩れない.
+既存の `.zshrc` がある場合はバックアップしておく：
 
-### 設定の更新
+```bash
+mv ~/.zshrc ~/.zshrc.backup
+```
+
+## 設定の更新
 
 ```bash
 cd ~/projects/home-manager
@@ -129,83 +64,67 @@ git pull origin hpc
 nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
 ```
 
----
+## 含まれるもの
 
-## 日常の使い方
+### パッケージ
 
-### 設定変更後の適用
+`gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs`, `ripgrep`, `trash-cli`, `ffmpeg`
 
-```bash
-# Linux (x86_64)
-nix run --impure ".#homeConfigurations.linux.activationPackage"
+### モジュール
 
-# macOS (Apple Silicon)
-nix run --impure .#homeConfigurations.macos.activationPackage
+| モジュール | 内容 |
+|------------|------|
+| `modules/zsh/` | zsh設定・エイリアス・カスタム関数 |
+| `modules/neovim/` | Neovim設定・LSP（pylsp, lua_ls, nil, fortls）・ddc補完・skkeleton |
 
-# HPC
-nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
-```
+### main ブランチとの差分
 
-### 依存パッケージの更新
+HPC環境では不要な以下を除外している：
 
-```bash
-nix flake update
-```
+- Claude Code / Copilot（ネット接続なし）
+- WezTerm設定（terminfo のみ含む）
+- LaTeX関連（texlab, ltex-ls, efm）
+- Obsidian連携・TTS・markdown-preview
+- corefonts, evince, llama-cpp, cmake, ninja, oneAPI
 
----
-
-## ディレクトリ構造
+## 仕組み
 
 ```
-.
-├── flake.nix              # Flake定義（依存関係・環境別設定）
-├── flake.lock             # バージョンロック（自動生成）
-├── home.nix               # Home Manager設定のルート（Linux/macOS）
-├── home-hpc.nix           # Home Manager設定（HPC用）
-├── scripts/
-│   ├── import-env.sh      # .envファイル読み込みスクリプト
-│   └── bootstrap-hpc.sh   # HPC環境セットアップスクリプト
-└── modules/
-    ├── zsh/               # zsh設定（エイリアス・カスタム関数）
-    ├── neovim/            # Neovim設定（dein.vim・LSP・スニペット等）
-    ├── claude/            # Claude Code設定（ルール・スキル・settings.json）
-    └── wezterm/           # WezTerm設定（WSL→Windows側コピー）
+nix-portable
+└── ~/.nix-portable/store/   ← /nix/store の代替（ユーザ空間）
+
+flake.nix
+├── home.nix                 ← Linux/macOS 用（mainブランチ）
+└── home-hpc.nix             ← HPC 用（このブランチ）
+    ├── modules/zsh/
+    └── modules/neovim/
 ```
 
----
+nix-portable は `/nix/store` への書き込み権限がない場合,自動的に `~/.nix-portable/store` を使う. user namespace が利用できない環境では proot にフォールバックする.
 
 ## トラブルシューティング
 
-### "experimental feature 'flakes' is disabled" エラー
+### nix-portable が動かない
+
+proot フォールバックを強制する：
 
 ```bash
-mkdir -p ~/.config/nix
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+NP_RUNTIME=proot nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
 ```
 
 ### "Existing file would be clobbered" エラー
 
-既存の設定ファイル（`.zshrc`等）が競合している場合,バックアップしてから再実行：
+既存の設定ファイルが競合している：
 
 ```bash
 mv ~/.zshrc ~/.zshrc.backup
-nix run .#homeConfigurations.linux.activationPackage
 ```
 
 ### Neovimプラグインが更新されない
 
-dein.vimのキャッシュをクリアして再起動：
-
-```
+```vim
 :call dein#clear_state()
 :q
-nvim
 ```
 
----
-
-## 参考リンク
-
-- [Home Manager Manual](https://nix-community.github.io/home-manager/)
-- [Nix Flakes](https://nixos.wiki/wiki/Flakes)
-- [nix-portable](https://github.com/DavHau/nix-portable)
+再度 `nvim` を起動すると再構築される.
