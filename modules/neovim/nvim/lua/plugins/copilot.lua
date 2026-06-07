@@ -17,7 +17,7 @@ require('copilot').setup({
     gitcommit = true,
     markdown = true,
   },
-  copilot_node_command = vim.fn.expand('~/.nodejs/bin/node'),
+  copilot_node_command = 'node',
 })
 
 -- <leader>cp: toggle copilot inline completion
@@ -45,3 +45,22 @@ vim.keymap.set('n', '<Esc>', function()
     vim.cmd('nohlsearch')
   end
 end, { desc = 'Clear NES or nohlsearch', silent = true })
+
+-- NES highlight: ghost text in insert mode, diff style in normal mode
+local nes_hl_group = vim.api.nvim_create_augroup('NesHighlight', {})
+
+vim.api.nvim_create_autocmd('InsertEnter', {
+  group = nes_hl_group,
+  callback = function()
+    vim.api.nvim_set_hl(0, 'CopilotLspNesAdd', { link = 'Comment' })
+    vim.api.nvim_set_hl(0, 'CopilotLspNesDelete', { fg = '#727272', strikethrough = true })
+  end,
+})
+
+vim.api.nvim_create_autocmd('InsertLeave', {
+  group = nes_hl_group,
+  callback = function()
+    vim.api.nvim_set_hl(0, 'CopilotLspNesAdd', { link = 'DiffAdd' })
+    vim.api.nvim_set_hl(0, 'CopilotLspNesDelete', { link = 'DiffDelete' })
+  end,
+})
