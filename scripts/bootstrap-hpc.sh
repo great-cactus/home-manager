@@ -61,9 +61,12 @@ export PATH="$HOME/.local/bin:$PATH"
 ENVEOF
 echo "[done] Created $ENV_SETUP"
 
-# 6. Home Manager の適用
+# 6. 既存のランタイムキャッシュをクリア（NP_LOCATION変更時の不整合回避）
+rm -f "$NP_STORE/.nix-portable/conf/nix.conf" 2>/dev/null || true
+
+# 7. Home Manager の適用
 echo "[3/5] Applying Home Manager configuration..."
-nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
+nix-portable nix run --option sandbox false --impure .#homeConfigurations.hpc.activationPackage
 
 echo "[4/5] Setup complete!"
 echo ""
