@@ -1,6 +1,5 @@
 -- Leader / global vars
 vim.g.mapleader        = ' '
-vim.g.tex_flavor       = 'latex'
 vim.g.fortran_free_source = 0
 
 -- MyAutoCmd: referenced by some plugin ftplugin scripts (e.g. markdown.vim)
@@ -334,7 +333,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
 
 -- Modules
 require('config.terminal')
-require('config.claude')
 require('config.substitute_nohl')
 require('config.lsp_treesitter_toggle').setup({ command = 'toggle' })
 require('config.tabline_toggle').setup()
@@ -344,12 +342,3 @@ require('config.smart_scroll').setup({
   cursor_pos  = 0.25,
 })
 require('config.one_sentence_per_line').setup()
-require('config.runner').setup({
-  run_key = '<F5>',
-  output_key = '<leader>ro',
-  stop_key = '<Esc>',
-  filetype = {
-    python = "cd $dir && uv run $fileName",
-    tex    = "cd $dir && latexmk $fileName",
-  }
-})

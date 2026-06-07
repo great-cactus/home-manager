@@ -118,39 +118,7 @@ lua_source = '''
     end
   end
 
-  -- 4. TeX 用トグル (\textbf{}, \textit{}, \mathrm{})
-  local function toggle_tex_format(cmd)
-    local prefix = "\\" .. cmd .. "{"
-    local pat_full = "^\\" .. cmd .. "{(.*)}$"
-    local pat_inner = "\\" .. cmd .. "{(.-)}"
-    return function()
-      local sr, sc, er, ec = get_visual_range()
-      local lines = vim.api.nvim_buf_get_text(0, sr, sc, er, ec, {})
-      local text = table.concat(lines, "\n")
-
-      local inner = text:match(pat_full)
-      local new_text = inner or (prefix .. text:gsub(pat_inner, "%1") .. "}")
-
-      vim.cmd([[execute "normal! \<Esc>"]])
-      vim.api.nvim_buf_set_text(0, sr, sc, er, ec, vim.split(new_text, "\n", { plain = true }))
-    end
-  end
-
-  -- 5. TeX 用セットアップ
-  local function setup_tex_surround()
-    require("nvim-surround").buffer_setup({
-      surrounds = {
-        ["l"] = { add = { "\\textbf{", "}" } },
-        ["i"] = { add = { "\\textit{", "}" } },
-        ["m"] = { add = { "\\mathrm{", "}" } },
-      },
-    })
-    vim.keymap.set("x", "<C-b>", toggle_tex_format("textbf"), { buffer = true, desc = "Toggle Bold" })
-    vim.keymap.set("x", "<C-i>", toggle_tex_format("textit"), { buffer = true, desc = "Toggle Italic" })
-    vim.keymap.set("x", "<C-m>", toggle_tex_format("mathrm"), { buffer = true, desc = "Toggle mathrm" })
-  end
-
-  -- 6. Markdown 用セットアップ
+  -- 4. Markdown 用セットアップ
   local function setup_markdown_surround()
     require("nvim-surround").buffer_setup({
       surrounds = {
@@ -162,65 +130,23 @@ lua_source = '''
     vim.keymap.set("x", "<C-i>", toggle_md_format("*", "*"), { buffer = true, desc = "Toggle Italic" })
   end
 
-  -- 7. 自動コマンド (これから開くファイル用)
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = "tex",
-    group = vim.api.nvim_create_augroup("MyTexSurround", { clear = true }),
-    callback = setup_tex_surround,
-  })
-
+  -- 5. 自動コマンド (これから開くファイル用)
   vim.api.nvim_create_autocmd("FileType", {
     pattern = "markdown",
     group = vim.api.nvim_create_augroup("MyMarkdownSurround", { clear = true }),
     callback = setup_markdown_surround,
   })
 
-  -- 8. 今開いているファイルに即適用 (起動時のファイル用)
-  if vim.bo.filetype == "tex" then
-    setup_tex_surround()
-  end
-
+  -- 6. 今開いているファイルに即適用 (起動時のファイル用)
   if vim.bo.filetype == "markdown" then
     setup_markdown_surround()
   end
 '''
 
 [[plugins]]
-repo = 'iamcco/markdown-preview.nvim'
-on_map = { ictn = '<Plug>MarkdownPreview'}
-build = 'sh -c "cd app && npx --yes npm install"'
-hook_add = '''
-nnoremap <silent> <leader>md <Plug>MarkdownPreview
-'''
-
-[[plugins]]
 repo = 'nvim-lua/plenary.nvim'
 
-#_____________________________________________________________ Start Copilot
-[[plugins]]
-repo = 'zbirenbaum/copilot.lua'
-on_event = 'InsertEnter'
-on_cmd = 'Copilot'
-lua_source = '''
-require('plugins.copilot')
-'''
-
-[[plugins]]
-repo = 'copilotlsp-nvim/copilot-lsp'
-depends = ['copilot.lua']
-on_source = 'copilot.lua'
-lua_add = '''
-vim.g.copilot_nes_debounce = 500
-'''
-lua_source = '''
-vim.lsp.config('copilot_ls', {
-  cmd = { 'copilot-language-server', '--stdio' },
-  root_markers = { '.git' },
-})
-vim.lsp.enable('copilot_ls')
-require("copilot-lsp").setup()
-'''
-#_____________________________________________________________ End Copilot
+#_____________________________________________________________ Copilot: disabled for HPC
 
 [[plugins]]
 repo = 'vim-denops/denops.vim'
@@ -615,60 +541,6 @@ let g:EasyMotion_smartcase = 1 "Turn on case insensitive feature
 '''
 
 [plugins.ftplugin]
-tex_plaintex_latex = '''
-"autocmd MyAutoCmd FileType tex call <SID>TeXKeymap()
-autocmd MyAutoCmd FileType tex
-  \ autocmd BufWritePre <buffer> call <SID>FixPunctuation()
-autocmd MyAutoCmd FileType tex call s:TEXKeymap()
-
-function! s:TEXKeymap() abort
-  inoremap \mr<SPACE> \mathrm{}<LEFT>
-endfunction
-function! s:FixPunctuation() abort
-  let l:pos = getpos('.')
-  " その他の句点を全角ピリオドに変換
-  silent! execute ':%s/[。]/．/g'
-  silent! execute ':%s/、/，/g'
-  silent! execute ':%s/\\\@<!\s\+$//'
-  setlocal modified
-  call setpos('.', l:pos)
-endfunction
-'''
-
-markdown = '''
-autocmd MyAutoCmd FileType markdown call s:MDKeymap()
-autocmd MyAutoCmd FileType markdown
-  \ autocmd BufWritePre <buffer> call s:FixPunctuation()
-
-function! s:MDKeymap() abort
-  inoremap \mr<SPACE> \mathrm{}<LEFT>
-endfunction
-function! s:FixPunctuation() abort
-  let l:pos = getpos('.')
-  silent! execute ':%s/。/./g'
-  silent! execute ':%s/、/,/g'
-  silent! execute ':%s/\\\@<!\s\+$//'
-  setlocal modified
-  call setpos('.', l:pos)
-endfunction
-
-autocmd MyAutoCmd FileType markdown syntax match htmlTagConceal /<\/\?[a-zA-Z][a-zA-Z0-9]*\%(\s[^>]*\)\?>/ conceal
-'''
-
-typst = '''
-autocmd MyAutoCmd FileType typst
-  \ autocmd BufWritePre <buffer> call s:FixPunctuation()
-
-function! s:FixPunctuation() abort
-  let l:pos = getpos('.')
-  silent! execute ':%s/。/．/g'
-  silent! execute ':%s/、/，/g'
-  silent! execute ':%s/\\\@<!\s\+$//'
-  setlocal modified
-  call setpos('.', l:pos)
-endfunction
-'''
-
 python = '''
   set shiftwidth=4
 '''
@@ -744,86 +616,9 @@ repo = 'hrsh7th/vim-vsnip-integ'
 repo = 'hrsh7th/vim-vsnip'
 #_____________________________________________________________ End snippets
 
-#_____________________________________________________________ Start snacks.nvim
-[[plugins]]
-repo = 'folke/snacks.nvim'
-on_ft = ['markdown', 'tex']
-lua_source = '''
-local obsidian_vault = vim.fn.expand("$OBSIDIAN_PATH")
-local attachments_dir = "Attachments"
+#_____________________________________________________________ snacks.nvim: disabled for HPC
 
-require("snacks").setup({
-  image = {
-    enabled = true,
-    convert = {
-      magick = {
-        pdf = { "-density", 300, "{src}[{page}]", "-background", "white", "-alpha", "remove", "-trim" },
-      },
-    },
-    doc = {
-      enabled = true,
-      inline = false,
-      float = true,
-      max_width = math.floor(vim.o.columns * 0.7),
-      max_height = math.floor(vim.o.lines * 0.8),
-    },
-    resolve = function(file, src)
-      local current_dir = vim.fn.fnamemodify(file, ":h")
-      local ext = vim.fn.fnamemodify(file, ":e")
-
-      -- For tex files, resolve relative path directly
-      if ext == "tex" then
-        local clean_src = src:gsub("^%./", "")
-        local path = current_dir .. "/" .. clean_src
-        if vim.fn.filereadable(path) == 1 then return path end
-        return nil
-      end
-
-      -- For markdown (Obsidian wikilinks)
-      local wikilink_match = src:match("^([^|]+)")
-      if wikilink_match then
-        wikilink_match = wikilink_match:gsub("^%./", "")
-
-        local paths = {
-          current_dir .. "/" .. wikilink_match,
-          current_dir .. "/" .. attachments_dir .. "/" .. wikilink_match,
-          obsidian_vault .. "/" .. attachments_dir .. "/" .. wikilink_match,
-          obsidian_vault .. "/" .. wikilink_match,
-        }
-        for _, path in ipairs(paths) do
-          if vim.fn.filereadable(path) == 1 then return path end
-        end
-      end
-      return nil
-    end,
-  },
-  bigfile = { enabled = false },
-  dashboard = { enabled = false },
-  explorer = { enabled = false },
-  indent = { enabled = false },
-  input = { enabled = false },
-  picker = { enabled = false },
-  notifier = { enabled = false },
-  quickfile = { enabled = false },
-  scope = { enabled = false },
-  scroll = { enabled = false },
-  statuscolumn = { enabled = false },
-  words = { enabled = false },
-})
-'''
-#_____________________________________________________________ End snacks.nvim
-
-#_____________________________________________________________ Start Obsidian
-[[plugins]]
-repo = 'obsidian-nvim/obsidian.nvim'
-on_event = ['BufRead', 'BufNewFile']
-on_if = 'expand("%:p") =~# "^" . expand("$OBSIDIAN_PATH") . ".*\\.md$"'
-on_map = {n = '<leader>od'}
-depends = ['plenary.nvim', 'fzf-lua', 'snacks.nvim']
-lua_source = '''
-require('plugins.obsidian')
-'''
-#_____________________________________________________________ End Obsidian
+#_____________________________________________________________ Obsidian: disabled for HPC
 
 #_____________________________________________________________ Start noice
 [[plugins]]
@@ -956,46 +751,7 @@ nnoremap <silent> <Leader>jj :SplitjoinJoin<cr>
 nnoremap <silent> <Leader>js :SplitjoinSplit<cr>
 '''
 
-[[plugins]]
-repo = 'great-cactus/read-text.vim'
-depends = ['denops.vim']
-on_map = { ictnv = '<Plug>(read-text-' }
-hook_source = '''
-let g:read_text_tts_provider = 'kokoro'
-let g:read_text_audio_command = 'mpv'
-let g:read_text_audio_args = ['--no-video', '--audio-samplerate=48000', '--ao=pulse', '--pulse-buffer=2000', '--pulse-latency-hacks=yes', '--quiet']
-
-let g:read_text_speaker_id = 0
-let g:read_text_speed_scale = 0.8
-let g:read_text_pitch_scale = 0.0
-let g:read_text_split_threshold = 20
-
-let g:read_text_voicevox_url = 'https://hideously-cheerful-swift.ngrok-free.app'
-
-let g:read_text_espeak_voice = 'en'
-let g:read_text_espeak_variant = 'f2'
-let g:read_text_espeak_command = 'espeak-ng'
-
-let g:read_text_melo_language = 'EN'
-let g:read_text_melo_speaker = 'EN-BR'
-let g:read_text_melo_device = 'auto'
-let g:read_text_melo_python = 'python3'
-let g:read_text_speed = 1.0
-
-let g:read_text_kokoro_lang = 'en-gb'
-let g:read_text_kokoro_voice = 'bf_isabella'
-let g:read_text_speed = 1.0
-
-let g:read_text_kokoro_model_path = '~/.local/share/kokoro-tts/kokoro-v1.0.onnx'
-let g:read_text_kokoro_voices_path = '~/.local/share/kokoro-tts/voices-v1.0.bin'
-'''
-hook_add = '''
-nmap <leader>rt <Plug>(read-text-from-cursor-async)
-vmap <leader>rt <Plug>(read-text-selection-async)
-nmap <leader>al <Plug>(read-text-line-async)
-nmap <leader>rp <Plug>(read-text-toggle-pause)
-nmap <leader>rs <Plug>(read-text-stop)
-'''
+#_____________________________________________________________ read-text: disabled for HPC
 
 [[plugins]]
 repo = 'm4xshen/autoclose.nvim'
@@ -1020,8 +776,7 @@ require('autoclose').setup({
         ["}"] = { escape = true, close = false, pair = "{}" },
         ['"'] = { escape = true, close = true, pair = '""' },
         ["'"] = { escape = true, close = true, pair = "''" },
-        ["`"] = { escape = true, close = true, pair = "`'", enabled_filetypes = {"tex", "latex"} },
-        ["$"] = { escape = true, close = true, pair = "$$", enabled_filetypes = {"markdown", "tex", "latex"} },
+        ["$"] = { escape = true, close = true, pair = "$$", enabled_filetypes = {"markdown"} },
     },
 })
 '''

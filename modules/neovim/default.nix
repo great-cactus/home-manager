@@ -6,7 +6,7 @@ let
       ts = pkgs.vimPlugins.nvim-treesitter;
       withParsers = ts.withPlugins (p: with p; [
         bash cpp diff fortran javascript
-        latex lua markdown markdown_inline nix python
+        lua markdown markdown_inline nix python
         query regex toml typescript typst vimdoc
       ]);
     in pkgs.symlinkJoin {
@@ -47,13 +47,9 @@ in {
     # LSPサーバーをNixで直接提供する
     extraPackages = with pkgs; [
       python3Packages.python-lsp-server  # pylsp
-      texlab
-      ltex-ls
-      efm-langserver
       lua-language-server                # lua_ls
       nil                                # nil_ls
       fortls
-      copilot-language-server            # copilot_ls (NES)
     ];
   };
 
