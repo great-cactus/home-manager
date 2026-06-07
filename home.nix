@@ -60,8 +60,9 @@
   home.sessionVariables = {
     EDITOR = "nvim";
     LANGUAGE = "en_US.UTF-8";
-    LC_ALL = "en_US.UTF-8";
-    LANG = "ja_JP.UTF-8";
+    LC_ALL = "C.UTF-8";
+    LANG = "C.UTF-8";
+    LESSCHARSET = "utf-8";
   };
 
   home.file.".config/fontconfig/conf.d/10-nix-fonts.conf".text = ''
