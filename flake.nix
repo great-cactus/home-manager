@@ -56,7 +56,7 @@
           modules = [ ./home-hpc.nix ];
           extraSpecialArgs = {
             inherit username;
-            homeDirectory = "/home/${username}";
+            homeDirectory = builtins.getEnv "HOME";
           };
         };
       };
