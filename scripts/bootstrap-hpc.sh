@@ -1,46 +1,80 @@
 #!/bin/bash
-# HPC環境に nix-portable をセットアップし Home Manager を適用するスクリプト
+# HPC環境に nix-user-chroot で Nix + Home Manager をセットアップするスクリプト
 # 使用法: bash bootstrap-hpc.sh
 #
-# Lustre ファイルシステム上ではNixがxattr操作に失敗するため,
-# NP_LOCATION でローカルディスク（/tmp）にNixストアを配置する.
+# nix-user-chroot はユーザー名前空間を使って ~/.nix を /nix にマウントし、
+# root権限なしで通常の Nix 環境を提供する。
+# nix-portable (proot) より安定かつ高速。
+#
+# 参考: https://zenn.dev/ultimatile/articles/nvim-supercomputer-nix
 set -euo pipefail
 
-NP_BIN="$HOME/.local/bin/nix-portable"
-NP_STORE="/tmp/$USER/nix-portable"
+NUC_VERSION="2.1.1"
+NUC_BIN="$HOME/.local/bin/nix-user-chroot"
+NIX_STORE="$HOME/.nix"
+NIX_CONF="$HOME/.config/nix/nix.conf"
 REPO_URL="https://github.com/great-cactus/home-manager.git"
 REPO_DIR="$HOME/projects/home-manager"
-ENV_SETUP="$HOME/.local/bin/nix-portable-env.sh"
 
-echo "=== HPC Nix-Portable Bootstrap ==="
+echo "=== HPC Nix-User-Chroot Bootstrap ==="
 
-# 1. nix-portable のダウンロード
-if [ -f "$NP_BIN" ]; then
-  echo "[skip] nix-portable already exists at $NP_BIN"
+# 0. ユーザー名前空間の確認
+echo "[check] Verifying user namespace support..."
+if unshare --user --pid echo YES 2>/dev/null; then
+  echo "  -> OK"
 else
-  echo "[1/5] Downloading nix-portable..."
-  mkdir -p "$(dirname "$NP_BIN")"
-  curl -L "https://github.com/DavHau/nix-portable/releases/latest/download/nix-portable-$(uname -m)" \
-    -o "$NP_BIN"
-  chmod +x "$NP_BIN"
-  echo "[done] nix-portable installed at $NP_BIN"
+  echo "[error] User namespace is not available on this system."
+  echo "  nix-user-chroot requires user namespace support (unshare --user)."
+  echo "  システム管理者に user.max_user_namespaces の設定を確認してください."
+  exit 1
+fi
+
+# 1. nix-user-chroot のダウンロード
+if [ -f "$NUC_BIN" ]; then
+  echo "[skip] nix-user-chroot already exists at $NUC_BIN"
+else
+  echo "[1/5] Downloading nix-user-chroot v${NUC_VERSION}..."
+  mkdir -p "$(dirname "$NUC_BIN")"
+  curl -fL "https://github.com/nix-community/nix-user-chroot/releases/download/${NUC_VERSION}/nix-user-chroot-bin-${NUC_VERSION}-x86_64-unknown-linux-musl" \
+    -o "$NUC_BIN"
+  chmod +x "$NUC_BIN"
+  echo "  -> Installed at $NUC_BIN"
 fi
 
 # 2. PATH に ~/.local/bin を追加（未設定の場合）
 if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
   export PATH="$HOME/.local/bin:$PATH"
-  echo "[info] Added ~/.local/bin to PATH for this session"
 fi
 
-# 3. Nixストア用ディレクトリを作成 & ランタイム設定
-#    - NP_LOCATION: Lustre上ではxattr操作に失敗するためローカルディスクを使用
-#    - NP_RUNTIME:  bwrapはマウント名前空間を要求するためprootを使用
-mkdir -p "$NP_STORE"
-export NP_LOCATION="$NP_STORE"
-export NP_RUNTIME=proot
-echo "[info] Nix store: $NP_STORE (runtime: proot)"
+# 3. Nix ストアの作成 & nix.conf の設定
+mkdir -p "$NIX_STORE"
+mkdir -p "$(dirname "$NIX_CONF")"
+if [ -f "$NIX_CONF" ] && ! [ -L "$NIX_CONF" ]; then
+  echo "[skip] nix.conf already exists at $NIX_CONF"
+else
+  # シンボリックリンク（home-manager管理）の場合は実ファイルで上書き
+  rm -f "$NIX_CONF"
+  cat > "$NIX_CONF" << 'EOF'
+# Lustre ファイルシステムの拡張属性エラーを回避
+ignored-acls = lustre.lov
+# ユーザー名前空間内でのビルドサンドボックスを無効化
+sandbox = false
+EOF
+  echo "[info] Created $NIX_CONF"
+fi
 
-# 4. リポジトリのクローン
+# 4. Nix のインストール
+if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  echo "[skip] Nix is already installed"
+else
+  echo "[2/5] Installing Nix via nix-user-chroot..."
+  # LD_LIBRARY_PATH を空にして HPC module の汚染を回避
+  LD_LIBRARY_PATH= "$NUC_BIN" "$NIX_STORE" bash -c \
+    "curl -L https://nixos.org/nix/install | bash"
+  echo "  -> Nix installed"
+fi
+
+# 5. リポジトリのクローン
 if [ -d "$REPO_DIR" ]; then
   echo "[skip] Repository already exists at $REPO_DIR"
   cd "$REPO_DIR"
@@ -48,35 +82,56 @@ if [ -d "$REPO_DIR" ]; then
   git checkout hpc
   git pull origin hpc
 else
-  echo "[2/5] Cloning home-manager repository..."
+  echo "[3/5] Cloning home-manager repository..."
   mkdir -p "$(dirname "$REPO_DIR")"
   git clone -b hpc "$REPO_URL" "$REPO_DIR"
   cd "$REPO_DIR"
 fi
 
-# 5. 環境変数ヘルパースクリプトを生成
-cat > "$ENV_SETUP" << 'ENVEOF'
-# nix-portable 環境変数（.zshrc や .bashrc から source する）
-export NP_LOCATION="/tmp/$USER/nix-portable"
-export NP_RUNTIME=proot
-export PATH="$HOME/.local/bin:$PATH"
-ENVEOF
-echo "[done] Created $ENV_SETUP"
-
 # 6. Home Manager の適用
-echo "[3/5] Applying Home Manager configuration..."
-nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
+echo "[4/5] Applying Home Manager configuration..."
+LD_LIBRARY_PATH= "$NUC_BIN" "$NIX_STORE" bash -c \
+  ". \$HOME/.nix-profile/etc/profile.d/nix.sh && cd '$REPO_DIR' && nix run --impure .#homeConfigurations.hpc.activationPackage"
 
-echo "[4/5] Setup complete!"
+# 7. .bashrc に自動エントリーを追加
+echo "[5/5] Configuring auto-enter..."
+BASHRC="$HOME/.bashrc"
+MARKER="# nix-user-chroot auto-enter"
+
+if [ -f "$BASHRC" ] && grep -q "$MARKER" "$BASHRC"; then
+  echo "[skip] Auto-enter already configured in .bashrc"
+else
+  cat >> "$BASHRC" << 'BASHEOF'
+
+# nix-user-chroot auto-enter
+# インタラクティブシェルで自動的に Nix chroot 環境に入る
+# 無効化: SKIP_NIX_CHROOT=1 bash でログイン
+if [ ! -d /nix ] && [ -x "$HOME/.local/bin/nix-user-chroot" ] && [[ $- == *i* ]] && [ -z "${SKIP_NIX_CHROOT:-}" ]; then
+  if [ -x "$HOME/.nix-profile/bin/zsh" ]; then
+    exec env LD_LIBRARY_PATH= "$HOME/.local/bin/nix-user-chroot" "$HOME/.nix" \
+      "$HOME/.nix-profile/bin/zsh" -l
+  else
+    exec env LD_LIBRARY_PATH= "$HOME/.local/bin/nix-user-chroot" "$HOME/.nix" \
+      /bin/bash -l
+  fi
+fi
+BASHEOF
+  echo "  -> Added auto-enter to $BASHRC"
+fi
+
 echo ""
-echo "=== 重要 ==="
-echo "  Nixストアは /tmp 上にあるため,以下を .bashrc または .zshrc に追加してください："
+echo "=== Setup complete! ==="
 echo ""
-echo "    source ~/.local/bin/nix-portable-env.sh"
+echo "次のステップ:"
+echo "  exec bash    # シェル再起動（自動的に Nix chroot + zsh に入ります）"
 echo ""
-echo "=== 次回以降の使い方 ==="
-echo "  # 設定の更新"
-echo "  cd $REPO_DIR && nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage"
+echo "以降の設定更新（chroot 内で直接実行）:"
+echo "  cd $REPO_DIR"
+echo "  nix run --impure .#homeConfigurations.hpc.activationPackage"
 echo ""
-echo "  # シェルを再読み込み"
-echo "  exec zsh"
+echo "chroot に入らずにログインしたい場合:"
+echo "  SKIP_NIX_CHROOT=1 bash"
+echo ""
+echo "旧 nix-portable 環境の削除（任意）:"
+echo "  rm -f ~/.local/bin/nix-portable ~/.local/bin/nix-portable-env.sh"
+echo "  rm -rf /tmp/\$USER/nix-portable"

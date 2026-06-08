@@ -13,8 +13,8 @@ nix run --impure .#homeConfigurations.linux.activationPackage
 # macOS (Apple Silicon)
 nix run --impure .#homeConfigurations.macos.activationPackage
 
-# HPC (nix-portable経由)
-nix-portable nix run --impure .#homeConfigurations.hpc.activationPackage
+# HPC (nix-user-chroot 環境内で直接実行)
+nix run --impure .#homeConfigurations.hpc.activationPackage
 ```
 
 ### 依存パッケージの更新
@@ -35,7 +35,7 @@ nix develop
 
 - `flake.nix`: Flake定義。`nixpkgs`, `home-manager`, `claude-code-nix` を依存に持ち、`linux`（x86_64）・`macos`（aarch64）・`hpc`（x86_64）の3環境を定義する。ユーザー名は `builtins.getEnv "USER"` で環境変数から取得し（`--impure` フラグ必須）、ホームディレクトリはシステムに応じて自動導出される。`home.nix` 内には直書きしない。
 - `home.nix`: Home Manager設定のルート。パッケージ一覧・セッション変数・activation scriptはここで管理する。`modules/zsh`, `modules/neovim`, `modules/claude`, `modules/wezterm` をインポートする。
-- `home-hpc.nix`: HPC環境向けHome Manager設定。GUI・Claude・コンパイラ関連を除外し、`modules/zsh`, `modules/neovim` のみインポートする。`nix-portable` 経由で適用する。
+- `home-hpc.nix`: HPC環境向けHome Manager設定。GUI・Claude・コンパイラ関連を除外し、`modules/zsh`, `modules/neovim` のみインポートする。`nix-user-chroot` 環境内で適用する。
 
 ### モジュール構成
 
