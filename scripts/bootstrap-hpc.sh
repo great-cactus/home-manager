@@ -55,6 +55,8 @@ else
   # シンボリックリンク（home-manager管理）の場合は実ファイルで上書き
   rm -f "$NIX_CONF"
   cat > "$NIX_CONF" << 'EOF'
+# flakes と nix コマンドを有効化
+experimental-features = nix-command flakes
 # Lustre ファイルシステムの拡張属性エラーを回避
 ignored-acls = lustre.lov
 # ユーザー名前空間内でのビルドサンドボックスを無効化
