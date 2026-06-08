@@ -36,11 +36,14 @@
   ];
 
   # Nix 設定（nix-user-chroot 環境向け）
-  home.file.".config/nix/nix.conf".text = ''
-    experimental-features = nix-command flakes
-    ignored-acls = lustre.lov
-    sandbox = false
-  '';
+  home.file.".config/nix/nix.conf" = {
+    text = ''
+      experimental-features = nix-command flakes
+      ignored-acls = lustre.lov
+      sandbox = false
+    '';
+    force = true;
+  };
 
   # import-env.sh を ~/.local/bin に配置
   home.file.".local/bin/import-env.sh" = {

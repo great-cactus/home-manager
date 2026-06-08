@@ -92,8 +92,8 @@ fi
 
 # 6. Home Manager の適用
 echo "[4/5] Applying Home Manager configuration..."
-LD_LIBRARY_PATH= "$NUC_BIN" "$NIX_STORE" bash -c \
-  ". \$HOME/.nix-profile/etc/profile.d/nix.sh && cd '$REPO_DIR' && nix run --impure .#homeConfigurations.hpc.activationPackage"
+LD_LIBRARY_PATH= "$NUC_BIN" "$NIX_STORE" bash -lc \
+  "cd '$REPO_DIR' && nix run --impure \".#homeConfigurations.hpc.activationPackage\""
 
 # 7. .bashrc に自動エントリーを追加
 echo "[5/5] Configuring auto-enter..."
