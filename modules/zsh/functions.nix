@@ -38,7 +38,7 @@
     # - stdin は ssh が透過するため `qsub < job.sh` / heredoc もそのまま通る。
     _pbs_host() {
       local cmd=$1; shift
-      ssh -o BatchMode=yes ADb "cd $(printf '%q' "$PWD") && $(printf '%q ' "$cmd" "$@")"
+      ssh -F ~/.ssh/config -o BatchMode=yes ADb "cd $(printf '%q' "$PWD") && $(printf '%q ' "$cmd" "$@")"
     }
     for _c in qstat qsub qdel qhold qrls qalter qmove qselect pbsnodes tracejob; do
       eval "$_c() { _pbs_host $_c \"\$@\"; }"
