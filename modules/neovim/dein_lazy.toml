@@ -194,6 +194,23 @@ nnoremap <silent> <leader>md <Plug>MarkdownPreview
 '''
 
 [[plugins]]
+repo = 'gaoDean/autolist.nvim'
+on_ft = 'markdown'
+lua_source = '''
+require('autolist').setup()
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'markdown',
+  callback = function()
+    local buf = vim.api.nvim_get_current_buf()
+    local opts = { buffer = buf }
+    vim.keymap.set('i', '<CR>', '<CR><Cmd>AutolistNewBullet<CR>', opts)
+    vim.keymap.set('n', 'o', 'o<Cmd>AutolistNewBullet<CR>', opts)
+    vim.keymap.set('n', 'O', 'O<Cmd>AutolistNewBulletBefore<CR>', opts)
+  end,
+})
+'''
+
+[[plugins]]
 repo = 'nvim-lua/plenary.nvim'
 
 #_____________________________________________________________ Start Copilot
