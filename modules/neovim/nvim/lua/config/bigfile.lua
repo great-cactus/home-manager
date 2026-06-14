@@ -55,6 +55,9 @@ function M.setup(opts)
       vim.bo[buf].swapfile = false
       vim.bo[buf].undolevels = -1
 
+      -- Limit search highlight time to prevent freeze
+      vim.wo[0].redrawtime = 200
+
       -- Limit syntax column for long lines
       vim.bo[buf].synmaxcol = 500
 
