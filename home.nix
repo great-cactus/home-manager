@@ -43,6 +43,7 @@
     gnumake
     ninja
     evince
+    librsvg
   ] ++ lib.optionals stdenv.isLinux [
     (callPackage ./pkgs/oneapi {})
   ];

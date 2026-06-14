@@ -254,7 +254,7 @@ repo = 'skk-dev/dict'
 
 [[plugins]]
 repo = 'great-cactus/skkeleton'
-rev = 'feature/llm'
+rev = 'feature/llm-zenz'
 depends = ['denops.vim', 'dict']
 denops_wait = false
 on_map = { ictn = '<Plug>(skkeleton-'}
@@ -273,11 +273,12 @@ call skkeleton#config(#{
   \registerConvertResult : v:true,
   \eggLikeNewline        : v:true,
   \llmEnabled            : v:true,
-  \llmProvider           : 'local',
-  \llmEndpoint           : 'http://localhost:8080',
+  \llmProvider           : 'zenz',
+  \llmEndpoint           : 'http://localhost:8081',
   \llmTimeoutMs          : 1000,
   \llmFallbackEnabled    : v:true,
   \llmFallbackTimeoutMs  : 500,
+  \llmModel              : '',
   \llmContextLines       : 5,
   \llmRerankMaxCandidates: 5,
   \})
