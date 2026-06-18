@@ -90,9 +90,11 @@
         # WSL
         export PULSE_SERVER=/mnt/wslg/PulseServer
 
-        # trash command
+        # trash command (cross-volume fallback for HPC /work etc.)
         if which trash-put &>/dev/null; then
-          alias rm=trash-put
+          rm() {
+            trash-put "$@" 2>/dev/null || command rm "$@"
+          }
         fi
       ''
     ];
