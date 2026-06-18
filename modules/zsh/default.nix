@@ -90,11 +90,10 @@
         # WSL
         export PULSE_SERVER=/mnt/wslg/PulseServer
 
-        # trash command (cross-volume fallback for HPC /work etc.)
+        # trash command
         if which trash-put &>/dev/null; then
-          rm() {
-            trash-put "$@" 2>/dev/null || command rm "$@"
-          }
+          export TRASH_ENABLE_HOME_FALLBACK=1
+          alias rm=trash-put
         fi
       ''
     ];
