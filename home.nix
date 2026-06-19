@@ -44,6 +44,7 @@
     ninja
     evince
     librsvg
+    fd
   ] ++ lib.optionals stdenv.isLinux [
     (callPackage ./pkgs/oneapi {})
   ];
