@@ -39,6 +39,9 @@
       (lib.mkBefore ''
         # ~/.env から環境変数を読み込み
         [ -f ~/.local/bin/import-env.sh ] && . ~/.local/bin/import-env.sh ~/.env
+
+        # WezTerm wsl_domains では TERM が xterm-256color になるため修正
+        [ -n "$WEZTERM_PANE" ] && export TERM=wezterm
       '')
       ''
         setopt extendedglob nomatch correct no_beep appendhistory

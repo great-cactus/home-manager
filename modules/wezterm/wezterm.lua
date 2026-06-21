@@ -25,18 +25,9 @@ config.term = 'wezterm'
 config.enable_kitty_graphics = true
 config.enable_csi_u_key_encoding = true
 config.adjust_window_size_when_changing_font_size = false
-config.default_domain = 'WSL'
-config.ssh_backend = 'Ssh2'
-config.ssh_domains = {
-  {
-    name = 'WSL',
-    remote_address = 'wsl',
-  },
-}
+config.default_domain = 'WSL:Ubuntu-22.04'
+config.canonicalize_pasted_newlines = 'LineFeed'
 config.selection_word_boundary = ' \t\n{}[]()"\'`'
-
-
-config.default_gui_startup_args = { 'ssh', 'wsl' }
 
 -------------------------------------------------
 -- Tab Bar Settings

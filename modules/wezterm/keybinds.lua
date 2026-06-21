@@ -77,10 +77,10 @@ function M.apply(config)
     { key = 'W', mods = 'LEADER|SHIFT', action = wezterm.action_callback(workspace.create) },
     { key = '$', mods = 'LEADER|SHIFT', action = wezterm.action_callback(workspace.rename) },
 
-    -- Refresh terminal screen
+    -- Full terminal reset (ESC c = RIS)
     { key = 'Q', mods = 'LEADER|SHIFT', action = act.Multiple {
       act.ClearScrollback 'ScrollbackAndViewport',
-      act.SendString '\x0c',
+      act.SendString '\x1bc',
     } },
 
     -- Font size
