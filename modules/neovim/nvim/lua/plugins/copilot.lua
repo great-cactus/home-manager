@@ -17,7 +17,6 @@ require('copilot').setup({
     gitcommit = true,
     markdown = true,
   },
-  copilot_node_command = vim.fn.expand('~/.nodejs/bin/node'),
 })
 
 -- <leader>cp: toggle copilot inline completion
