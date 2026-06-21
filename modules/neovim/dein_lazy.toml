@@ -843,6 +843,17 @@ require('plugins.obsidian')
 '''
 #_____________________________________________________________ End Obsidian
 
+#_____________________________________________________________ Start gtd.nvim
+[[plugins]]
+repo = '~/projects/gtd.nvim'
+on_cmd = 'Gtd'
+lua_source = '''
+require("gtd").setup({
+  vault_path = vim.fn.expand("$OBSIDIAN_PATH"),
+})
+'''
+#_____________________________________________________________ End gtd.nvim
+
 #_____________________________________________________________ Start noice
 [[plugins]]
 repo = 'folke/noice.nvim'
