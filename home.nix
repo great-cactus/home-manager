@@ -45,6 +45,7 @@
     evince
     librsvg
     fd
+    wl-clipboard
   ] ++ lib.optionals stdenv.isLinux [
     (callPackage ./pkgs/oneapi {})
   ];

@@ -94,13 +94,22 @@ vim.opt.statusline     = "%{repeat('─',winwidth('.'))}"
 -- Clipboard
 vim.opt.clipboard = 'unnamedplus'
 
-if vim.fn.has('wsl') == 1 then
-  -- WSL2: clip.exe (copy) + powershell.exe (paste)
-  -- Lua functions avoid spawning powershell.exe at startup
-  local function wsl_paste()
-    local output = vim.fn.systemlist({ 'powershell.exe', '-NoProfile', '-Command', 'Get-Clipboard' })
-    return output
-  end
+if vim.fn.has('wsl') == 1 and vim.fn.executable('wl-paste') == 1 then
+  -- WSLg: wl-copy/wl-paste (Wayland clipboard, UTF-8 native)
+  vim.g.clipboard = {
+    name = 'WSLg Clipboard',
+    copy = {
+      ['+'] = { 'wl-copy' },
+      ['*'] = { 'wl-copy', '--primary' },
+    },
+    paste = {
+      ['+'] = { 'wl-paste', '--no-newline' },
+      ['*'] = { 'wl-paste', '--primary', '--no-newline' },
+    },
+    cache_enabled = true,
+  }
+elseif vim.fn.has('wsl') == 1 then
+  -- WSL2 fallback: clip.exe (copy) + powershell.exe (paste)
   vim.g.clipboard = {
     name = 'WSL Clipboard',
     copy = {
@@ -108,8 +117,12 @@ if vim.fn.has('wsl') == 1 then
       ['*'] = function(lines) vim.fn.system('clip.exe', table.concat(lines, '\n')) end,
     },
     paste = {
-      ['+'] = wsl_paste,
-      ['*'] = wsl_paste,
+      ['+'] = function()
+        return vim.fn.systemlist('powershell.exe -NoProfile -Command Get-Clipboard')
+      end,
+      ['*'] = function()
+        return vim.fn.systemlist('powershell.exe -NoProfile -Command Get-Clipboard')
+      end,
     },
     cache_enabled = true,
   }
