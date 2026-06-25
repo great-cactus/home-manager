@@ -95,5 +95,24 @@ in
     ".claude/skills/review-coherence/SKILL.md".source   = ./skills/review-coherence/SKILL.md;
     ".claude/skills/review-correctness/SKILL.md".source = ./skills/review-correctness/SKILL.md;
     ".claude/skills/review-impact/SKILL.md".source      = ./skills/review-impact/SKILL.md;
+
+    # Writing & proofreading skills
+    ".claude/skills/concise-writing/SKILL.md".source              = ./skills/concise-writing/SKILL.md;
+    ".claude/skills/email-english-proofreading/SKILL.md".source   = ./skills/email-english-proofreading/SKILL.md;
+    ".claude/skills/scientific-english-proofreading/SKILL.md".source = ./skills/scientific-english-proofreading/SKILL.md;
+    ".claude/skills/math-notation/SKILL.md".source                = ./skills/math-notation/SKILL.md;
+    ".claude/skills/storyline-outliner/SKILL.md".source            = ./skills/storyline-outliner/SKILL.md;
+    ".claude/skills/unfamiliar-topic-explanation/SKILL.md".source  = ./skills/unfamiliar-topic-explanation/SKILL.md;
+
+    # Obsidian personal skills
+    ".claude/skills/obsidian-personal-ai-collaboration/SKILL.md".source = ./skills/obsidian-personal-ai-collaboration/SKILL.md;
+    ".claude/skills/obsidian-personal-bookkeeping/SKILL.md".source      = ./skills/obsidian-personal-bookkeeping/SKILL.md;
+    ".claude/skills/obsidian-personal-gtd/SKILL.md".source              = ./skills/obsidian-personal-gtd/SKILL.md;
+    ".claude/skills/obsidian-personal-zettelkasten/SKILL.md".source     = ./skills/obsidian-personal-zettelkasten/SKILL.md;
+
+    # Utility skills
+    ".claude/skills/travel-planning/SKILL.md".source = ./skills/travel-planning/SKILL.md;
+    ".claude/skills/grill-me/SKILL.md".source        = ./skills/grill-me/SKILL.md;
+    ".claude/skills/grilling/SKILL.md".source         = ./skills/grilling/SKILL.md;
   };
 }
