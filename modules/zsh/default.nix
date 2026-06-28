@@ -41,7 +41,8 @@
         [ -f ~/.local/bin/import-env.sh ] && . ~/.local/bin/import-env.sh ~/.env
 
         # WezTerm wsl_domains では TERM が xterm-256color になるため修正
-        [ -n "$WEZTERM_PANE" ] && export TERM=wezterm
+        # $WEZTERM_PANE は wsl_domains 経由だと未設定なので $TERM_PROGRAM で判定
+        [ "$TERM_PROGRAM" = "WezTerm" ] && export TERM=wezterm
       '')
       ''
         setopt extendedglob nomatch correct no_beep appendhistory
@@ -96,6 +97,19 @@
         # trash command
         if which trash-put &>/dev/null; then
           alias rm=trash-put
+        fi
+
+        # WezTerm: OSC 7 でカレントディレクトリを通知
+        # wsl_domains 経由のWSLセッションでは $WEZTERM_PANE が伝播しないため
+        # $TERM_PROGRAM で判定する。
+        # wezterm.exe set-working-directory はWSL内から実行するとパスに
+        # ディストロ名が混入する (file://host/Ubuntu-22.04/home/...) ため使用不可。
+        # 手動 OSC 7 で正しい Linux パスを直接通知する。
+        if [ "$TERM_PROGRAM" = "WezTerm" ]; then
+          __wezterm_osc7() {
+            printf '\e]7;file://%s%s\e\\' "$HOST" "$PWD"
+          }
+          precmd_functions+=(__wezterm_osc7)
         fi
       ''
     ];

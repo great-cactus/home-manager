@@ -4,7 +4,7 @@ local workspace = require 'workspace'
 
 local M = {}
 
-function M.apply(config)
+function M.apply(config, wsl_home)
   -------------------------------------------------
   -- Leader Key (Ctrl-q)
   -------------------------------------------------
@@ -45,15 +45,22 @@ function M.apply(config)
     { key = 'K', mods = 'LEADER|SHIFT', action = act.AdjustPaneSize { 'Up', 10 } },
     { key = 'L', mods = 'LEADER|SHIFT', action = act.AdjustPaneSize { 'Right', 10 } },
 
-    -- Split panes
-    { key = 'v', mods = 'LEADER', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
-    { key = 's', mods = 'LEADER', action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
+    -- Split panes ($HOME) — default_cwd バグ回避: cwd を明示指定
+    { key = 'v', mods = 'LEADER', action = act.SplitHorizontal { cwd = wsl_home } },
+    { key = 's', mods = 'LEADER', action = act.SplitVertical { cwd = wsl_home } },
+
+    -- Split panes (current directory)
+    { key = 'V', mods = 'LEADER|SHIFT', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
+    { key = 'S', mods = 'LEADER|SHIFT', action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
 
     -- Close pane
     { key = 'x', mods = 'LEADER', action = act.CloseCurrentPane { confirm = true } },
 
-    -- New tab
-    { key = 'n', mods = 'LEADER', action = act.SpawnTab 'CurrentPaneDomain' },
+    -- New tab ($HOME) — default_cwd バグ回避: cwd を明示指定
+    { key = 'n', mods = 'LEADER', action = act.SpawnCommandInNewTab { cwd = wsl_home } },
+
+    -- New tab (current directory)
+    { key = 'N', mods = 'LEADER|SHIFT', action = act.SpawnTab 'CurrentPaneDomain' },
 
     -- Tab navigation (Leader + 1-9)
     { key = '1', mods = 'LEADER', action = act.ActivateTab(0) },

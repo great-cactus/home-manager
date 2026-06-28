@@ -26,6 +26,26 @@ config.enable_kitty_graphics = true
 config.enable_csi_u_key_encoding = true
 config.adjust_window_size_when_changing_font_size = false
 config.default_domain = 'WSL:Ubuntu-22.04'
+
+-- WSL domain: default cwd to $HOME
+-- default_cwd は最初のタブにしか効かない既知バグ (wezterm#5503) があるため、
+-- wsl_home を解決して keybinds 側で SpawnCommandInNewTab { cwd = ... } に渡す
+local wsl_home
+do
+  local wsl = wezterm.default_wsl_domains()
+  for _, d in ipairs(wsl) do
+    local ok, stdout = wezterm.run_child_process {
+      'wsl.exe', '-d', d.distribution, '--', 'sh', '-c', 'echo $HOME',
+    }
+    if ok then
+      d.default_cwd = stdout:gsub('%s+$', '')
+      if d.name == config.default_domain then
+        wsl_home = d.default_cwd
+      end
+    end
+  end
+  config.wsl_domains = wsl
+end
 config.canonicalize_pasted_newlines = 'LineFeed'
 config.selection_word_boundary = ' \t\n{}[]()"\'`'
 
@@ -67,7 +87,7 @@ config.colors = {
 -------------------------------------------------
 -- Key Bindings
 -------------------------------------------------
-keybinds.apply(config)
+keybinds.apply(config, wsl_home)
 
 -------------------------------------------------
 -- Tab Title (1-indexed)
