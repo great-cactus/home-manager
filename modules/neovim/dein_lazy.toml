@@ -1360,6 +1360,11 @@ require('incline').setup({
       table.insert(result, { " ●", guifg = props.focused and "#fe640b" or "#bcc0cc" })
     end
 
+    -- ビルド中マーク (nf-fa-cog U+F013)
+    if vim.b[props.buf].runner_active then
+      table.insert(result, { " \xEF\x80\x93", guifg = props.focused and "#1e66f5" or "#9ca0b0" })
+    end
+
     table.insert(result, " ")
     return result
   end,

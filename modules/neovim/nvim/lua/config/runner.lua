@@ -7,8 +7,6 @@ local filetype_cmds = {
   tex    = "cd $dir && latexmk $fileName",
 }
 
-local spinner_frames = { '⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏' }
-
 -- Patterns that start a warning block
 local warn_starters = {
   ':%d+: %w+Warning:',       -- Python: /path/file.py:42: DeprecationWarning: ...
@@ -28,15 +26,17 @@ local error_starters = {
   '^!',                        -- LaTeX ! Undefined control sequence.
 }
 
+local function refresh_incline()
+  pcall(function() require('incline').refresh() end)
+end
+
 local state = {
   job_id = nil,
+  buf = nil,
   stdout = {},
   stderr = {},
   warn = {},
   prev_kind = nil,
-  spinner_idx = 0,
-  spinner_timer = nil,
-  notification = nil,
 }
 
 local function classify_stderr(line)
@@ -58,31 +58,6 @@ local function classify_stderr(line)
   return 'error'
 end
 
-local function start_spinner(cmd)
-  state.spinner_idx = 0
-  state.notification = vim.notify(
-    spinner_frames[1] .. ' ' .. cmd,
-    vim.log.levels.INFO,
-    { title = "Runner", timeout = false }
-  )
-  state.spinner_timer = vim.uv.new_timer()
-  state.spinner_timer:start(80, 80, vim.schedule_wrap(function()
-    state.spinner_idx = (state.spinner_idx + 1) % #spinner_frames
-    state.notification = vim.notify(
-      spinner_frames[state.spinner_idx + 1] .. ' Running...',
-      vim.log.levels.INFO,
-      { title = "Runner", replace = state.notification, timeout = false }
-    )
-  end))
-end
-
-local function stop_spinner()
-  if state.spinner_timer then
-    state.spinner_timer:stop()
-    state.spinner_timer:close()
-    state.spinner_timer = nil
-  end
-end
 
 function M.run()
   if state.job_id then
@@ -109,7 +84,9 @@ function M.run()
   state.stderr = {}
   state.warn = {}
   state.prev_kind = nil
-  start_spinner(cmd)
+  state.buf = vim.api.nvim_get_current_buf()
+  vim.b[state.buf].runner_active = true
+  refresh_incline()
 
   state.job_id = vim.fn.jobstart(cmd, {
     stdout_buffered = false,
@@ -133,13 +110,16 @@ function M.run()
       end
     end,
     on_exit = function(_, exit_code)
-      stop_spinner()
       state.job_id = nil
       vim.schedule(function()
         local level = exit_code == 0 and vim.log.levels.INFO or vim.log.levels.ERROR
+        if state.buf and vim.api.nvim_buf_is_valid(state.buf) then
+          vim.b[state.buf].runner_active = false
+        end
+        refresh_incline()
         local status = exit_code == 0 and 'Done' or ('Exit code: ' .. exit_code)
         local default_timeout = require("notify")._config().default_timeout()
-        vim.notify(status, level, { title = "Runner", replace = state.notification, timeout = default_timeout })
+        vim.notify(status, level, { title = "Runner", timeout = default_timeout })
 
         if #state.stdout > 0 then
           vim.notify(
@@ -172,10 +152,13 @@ end
 function M.stop()
   if state.job_id then
     vim.fn.jobstop(state.job_id)
-    stop_spinner()
     state.job_id = nil
+    if state.buf and vim.api.nvim_buf_is_valid(state.buf) then
+      vim.b[state.buf].runner_active = false
+    end
+    refresh_incline()
     local default_timeout = require("notify")._config().default_timeout()
-    vim.notify("Killed", vim.log.levels.WARN, { title = "Runner", replace = state.notification, timeout = default_timeout })
+    vim.notify("Killed", vim.log.levels.WARN, { title = "Runner", timeout = default_timeout })
   end
 end
 
