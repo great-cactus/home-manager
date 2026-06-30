@@ -23,6 +23,16 @@
     ./modules/neovim
   ];
 
+  # /etc/profile.d/hpe.sh が source /usr/share/Modules/init/bash をハードコードしており、
+  # zsh 起動時に export -f 等の bash 専用構文でエラーが出る（HPCベンダー設定バグ）。
+  # ~/.zshenv で stderr を退避・抑制し、~/.zshrc 冒頭で復元する。
+  programs.zsh.envExtra = ''
+    exec 9>&2 2>/dev/null
+  '';
+  programs.zsh.initContent = lib.mkOrder 0 ''
+    exec 2>&9 9>&-
+  '';
+
   home.packages = with pkgs; [
     gh
     uv
