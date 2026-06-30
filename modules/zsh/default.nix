@@ -90,10 +90,17 @@
         # WSL
         export PULSE_SERVER=/mnt/wslg/PulseServer
 
-        # trash command
+        # trash command (cross-volume fallback for HPC /work etc.)
+        # TRASH_EXTRA_DIRS: colon-separated list of fallback trash dirs on other volumes
         if which trash-put &>/dev/null; then
-          export TRASH_ENABLE_HOME_FALLBACK=1
-          alias rm=trash-put
+          rm() {
+            trash-put "$@" 2>/dev/null && return
+            for d in ''${(s/:/)TRASH_EXTRA_DIRS}; do
+              trash-put --trash-dir "$d" "$@" 2>/dev/null && return
+            done
+            echo "trash-put failed, falling back to rm" >&2
+            command rm "$@"
+          }
         fi
       ''
     ];
