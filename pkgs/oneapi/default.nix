@@ -75,6 +75,7 @@ in buildFHSEnv {
     oneapi
   ] ++ (with pkgs; [
     zlib
+    zlib.dev             # /usr/include/zlib.h (HDF5 などの依存ライブラリ検出用)
     # icx/icpx/ifx は clang ベースで、FHS 標準パス (/usr/lib/gcc/<triple>/<ver>)
     # から GCC インストールを自動検出する。ラッパー版 gcc だけではこのツリーが
     # /usr に現れないため、実体を直接並べて完全な FHS ツールチェインを作る。
@@ -86,6 +87,11 @@ in buildFHSEnv {
   ]);
   profile = ''
     source ${oneapi}/share/intel/setvars.sh > /dev/null 2>&1 || true
+    # nix ビルドの cmake / pkg-config は /usr を探索しないようパッチされている
+    # ため、FHS 内の /usr を明示的に探索対象へ加える (CMake の find_package が
+    # zlib 等を見つけられるようにする)
+    export CMAKE_PREFIX_PATH="/usr''${CMAKE_PREFIX_PATH:+:''${CMAKE_PREFIX_PATH}}"
+    export PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}"
   '';
   runScript = "bash";
   extraInstallCommands = ''
