@@ -75,7 +75,14 @@ in buildFHSEnv {
     oneapi
   ] ++ (with pkgs; [
     zlib
-    gcc
+    # icx/icpx/ifx は clang ベースで、FHS 標準パス (/usr/lib/gcc/<triple>/<ver>)
+    # から GCC インストールを自動検出する。ラッパー版 gcc だけではこのツリーが
+    # /usr に現れないため、実体を直接並べて完全な FHS ツールチェインを作る。
+    gcc                  # /usr/bin/gcc (configure の CC テスト用)
+    gcc-unwrapped        # /usr/lib/gcc/<triple>/<ver>/crtbegin*.o, /usr/include/c++
+    gcc-unwrapped.lib    # libstdc++.so, libgcc_s.so
+    glibc.dev            # /usr/include (stdio.h など)
+    binutils-unwrapped   # /usr/bin/ld
   ]);
   profile = ''
     source ${oneapi}/share/intel/setvars.sh > /dev/null 2>&1 || true
