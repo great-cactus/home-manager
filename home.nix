@@ -1,5 +1,10 @@
 { config, pkgs, lib, username, homeDirectory, ... }:
-
+let
+  gccTC = "--gcc-toolchain=${pkgs.gcc-unwrapped}";
+  glibcInc = "${pkgs.glibc.dev}/include";
+  cToolchain = "${gccTC} -idirafter ${glibcInc}";
+  cxxToolchain = "${cToolchain} -include cstdint";
+in
 {
   home.username = username;
   home.homeDirectory = homeDirectory;
@@ -46,6 +51,7 @@
     librsvg
     fd
     wl-clipboard
+    gcc
   ] ++ lib.optionals stdenv.isLinux [
     (callPackage ./pkgs/oneapi {})
   ];
@@ -65,6 +71,15 @@
     LANGUAGE = "en_US.UTF-8";
     LC_ALL = "en_US.UTF-8";
     LANG = "ja_JP.UTF-8";
+
+    CFLAGS = cToolchain;
+    CXXFLAGS = cxxToolchain;
+    FFLAGS = gccTC;
+
+    I_MPI_CFLAGS = cToolchain;
+    I_MPI_CXXFLAGS = cxxToolchain;
+    I_MPI_FFLAGS = gccTC;
+    I_MPI_LDFLAGS = gccTC;
   };
 
   home.file.".config/fontconfig/conf.d/10-nix-fonts.conf".text = ''
