@@ -84,6 +84,7 @@ in buildFHSEnv {
     gcc-unwrapped.lib    # libstdc++.so, libgcc_s.so
     glibc.dev            # /usr/include (stdio.h など)
     binutils-unwrapped   # /usr/bin/ld
+    python3              # ビルドスクリプト用 (Zero-RK 等が find_package(Python3) する)
   ]);
   profile = ''
     source ${oneapi}/share/intel/setvars.sh > /dev/null 2>&1 || true
