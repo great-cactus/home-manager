@@ -93,6 +93,10 @@ in buildFHSEnv {
     # zlib 等を見つけられるようにする)
     export CMAKE_PREFIX_PATH="/usr''${CMAKE_PREFIX_PATH:+:''${CMAKE_PREFIX_PATH}}"
     export PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig''${PKG_CONFIG_PATH:+:''${PKG_CONFIG_PATH}}"
+    # ifx は大きな自動配列をスタックに置くため、デフォルト 8MB ではシミュレー
+    # ションコード (2D-COGNAC の calc_viscous_2d 等) が初回呼び出しで SIGSEGV
+    # する。HPC ジョブスクリプトの定番設定と同じものを環境側で保証する。
+    ulimit -s unlimited 2>/dev/null || true
   '';
   runScript = "bash";
   extraInstallCommands = ''
