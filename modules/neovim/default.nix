@@ -59,11 +59,16 @@ in {
 
   home.file = {
     # treesitter パーサ（既存）
-    ".cache/dein/_generated/nvim-treesitter".source =
-      nvim-treesitter-with-parsers;
+    ".cache/dein/_generated/nvim-treesitter" = {
+      source = nvim-treesitter-with-parsers;
+      force = true;
+    };
 
     # dein.vim をインストーラが期待するパスに配置（読み取り専用でよい）
-    ".cache/dein/repos/github.com/Shougo/dein.vim".source = dein-vim-src;
+    ".cache/dein/repos/github.com/Shougo/dein.vim" = {
+      source = dein-vim-src;
+      force = true;
+    };
   };
 
   xdg.configFile = {
