@@ -46,8 +46,6 @@
     fd
     wl-clipboard
     gcc
-  ] ++ lib.optionals stdenv.isLinux [
-    (callPackage ./pkgs/oneapi {})
   ];
 
   # import-env.sh を ~/.local/bin に配置
