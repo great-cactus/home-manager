@@ -54,6 +54,7 @@ in {
       nil                                # nil_ls
       fortls
       copilot-language-server            # copilot_ls (NES)
+      wordnet                            # wn (English dictionary)
     ];
   };
 
