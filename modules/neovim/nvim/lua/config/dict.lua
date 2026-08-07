@@ -12,8 +12,10 @@ local function get_cword()
   return word
 end
 
+-- OALD uses non-breaking space (U+00A0, \xc2\xa0) between words in headers
+local nbsp = '\xc2\xa0'
 -- Section headers that start a skippable block
-local skip_headers = { 'Word Origin:', 'Example Bank:' }
+local skip_headers = { 'Word' .. nbsp .. 'Origin:', 'Example' .. nbsp .. 'Bank:' }
 -- POS headers that end a skippable block
 local pos_headers = { ' noun', ' verb', ' adjective', ' adverb', ' exclamation',
   ' preposition', ' conjunction', ' determiner', ' pronoun' }
@@ -31,7 +33,7 @@ local function clean_lines(raw_lines)
         break
       end
     end
-    if line:match('^Verb forms:') then
+    if line:match('^Verb' .. nbsp .. 'forms:') then
       is_skip_header = true
     end
     if is_skip_header then
