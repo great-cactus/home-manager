@@ -95,7 +95,7 @@ local function refresh()
       settings = client.config.settings,
     })
     -- Force re-diagnosis on all attached buffers to clear stale diagnostics
-    for _, bufnr in ipairs(vim.lsp.get_buffers_by_client_id(client.id)) do
+    for bufnr in pairs(client.attached_buffers) do
       local uri = vim.uri_from_bufnr(bufnr)
       local text = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), '\n')
       client:notify('textDocument/didChange', {
