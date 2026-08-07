@@ -12,20 +12,45 @@ local function get_cword()
   return word
 end
 
+-- Section headers that start a skippable block
+local skip_headers = { 'Word Origin:', 'Example Bank:' }
+-- POS headers that end a skippable block
+local pos_headers = { ' noun', ' verb', ' adjective', ' adverb', ' exclamation',
+  ' preposition', ' conjunction', ' determiner', ' pronoun' }
+
 -- Remove unwanted sections and artifacts from OALD definition
-local function clean_definition(text)
-  -- Remove "Word Origin:" sections (may appear multiple times)
-  text = text:gsub('\nWord Origin:\n.-\n([%s]*\n)', '\n%1')
-  text = text:gsub('\nWord Origin:\n.*$', '')
-  -- Remove "Example Bank:" sections
-  text = text:gsub('\nExample Bank:\n.-\n([%s]*\n)', '\n%1')
-  text = text:gsub('\nExample Bank:\n.*$', '')
-  -- Remove "Verb forms:" image references
-  text = text:gsub('\nVerb forms:[^\n]*', '')
-  -- Remove .wav/.jpg file references
-  text = text:gsub('%s*[%w_]-%.wav', '')
-  text = text:gsub('%s*[%w_]-%.jpg', '')
-  return text
+local function clean_lines(raw_lines)
+  local result = {}
+  local skipping = false
+  for _, line in ipairs(raw_lines) do
+    -- Check if this line starts a skip section
+    local is_skip_header = false
+    for _, h in ipairs(skip_headers) do
+      if line:match('^' .. h) then
+        is_skip_header = true
+        break
+      end
+    end
+    if line:match('^Verb forms:') then
+      is_skip_header = true
+    end
+    if is_skip_header then
+      skipping = true
+    elseif skipping then
+      -- End skipping at POS header or numbered definition
+      for _, p in ipairs(pos_headers) do
+        if line == p then skipping = false; break end
+      end
+      if line:match('^%d+%.') then skipping = false end
+    end
+    if not skipping then
+      -- Remove .wav/.jpg references
+      line = line:gsub('%s*[%w_]-%.wav', '')
+      line = line:gsub('%s*[%w_]-%.jpg', '')
+      result[#result + 1] = line
+    end
+  end
+  return result
 end
 
 local function lookup(word, callback)
@@ -46,8 +71,8 @@ local function lookup(word, callback)
         return
       end
       -- Use only the first entry to avoid duplicates
-      local definition = clean_definition(entries[1].definition)
-      local lines = vim.split(definition, '\n', { trimempty = true })
+      local raw_lines = vim.split(entries[1].definition, '\n', { trimempty = true })
+      local lines = clean_lines(raw_lines)
       callback(lines, word)
     end)
   end)
