@@ -13,7 +13,12 @@ local function get_cword()
 end
 
 local function lookup(word, callback)
-  vim.system({ 'wn', word, '-over' }, { text = true }, function(obj)
+  local wn = vim.fn.exepath('wn')
+  if wn == '' then
+    vim.notify('wn command not found', vim.log.levels.ERROR)
+    return
+  end
+  vim.system({ wn, word, '-over' }, { text = true }, function(obj)
     vim.schedule(function()
       if obj.code ~= 0 or obj.stdout == '' then
         vim.notify('No definition found for: ' .. word, vim.log.levels.WARN)
