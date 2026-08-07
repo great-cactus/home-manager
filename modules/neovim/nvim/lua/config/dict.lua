@@ -1,4 +1,4 @@
--- dict.lua: English dictionary lookup using WordNet (wn command)
+-- dict.lua: English dictionary lookup using sdcv (StarDict console)
 -- Commands: :DictFloat, :DictHoriz, :DictVert
 
 local M = {}
@@ -13,14 +13,14 @@ local function get_cword()
 end
 
 local function lookup(word, callback)
-  local wn = vim.fn.exepath('wn')
-  if wn == '' then
-    vim.notify('wn command not found', vim.log.levels.ERROR)
+  local sdcv = vim.fn.exepath('sdcv')
+  if sdcv == '' then
+    vim.notify('sdcv command not found', vim.log.levels.ERROR)
     return
   end
-  vim.system({ wn, word, '-over' }, { text = true }, function(obj)
+  vim.system({ sdcv, '-n', '-e', word }, { text = true }, function(obj)
     vim.schedule(function()
-      if obj.stdout == '' then
+      if obj.stdout == '' or obj.stdout:match('^Nothing similar to') then
         vim.notify('No definition found for: ' .. word, vim.log.levels.WARN)
         return
       end

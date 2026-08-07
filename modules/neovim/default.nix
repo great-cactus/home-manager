@@ -32,6 +32,20 @@ let
 
   ddcDictPath = "${pkgs.scowl}/share/dict/wamerican.txt";
 
+  # OALD (Oxford Advanced Learner's Dictionary) StarDict形式
+  # sdcv で英英辞書として使用する
+  oald-stardict = pkgs.runCommand "oald-stardict" {
+    src = pkgs.fetchurl {
+      url = "https://archive.org/download/stardict_collections/archives-english/en-head/Oxford_Advanced_Learner_s_Dictionary.tar.gz";
+      name = "oald.tar.gz";
+      sha256 = "0pyi9nfc4q869gxankyzbsmavlsr025yl6vivw96ca3qdsmc8kpq";
+    };
+    nativeBuildInputs = [ pkgs.gnutar pkgs.gzip ];
+  } ''
+    mkdir -p $out
+    tar xzf $src -C $out
+  '';
+
 in {
   programs.neovim = {
     enable = true;
@@ -54,7 +68,7 @@ in {
       nil                                # nil_ls
       fortls
       copilot-language-server            # copilot_ls (NES)
-      wordnet                            # wn (English dictionary)
+      sdcv                               # StarDict console dictionary
     ];
   };
 
@@ -69,6 +83,11 @@ in {
     ".cache/dein/repos/github.com/Shougo/dein.vim" = {
       source = dein-vim-src;
       force = true;
+    };
+
+    # OALD StarDict辞書（sdcv のデフォルト検索パス）
+    ".stardict/dic/oald" = {
+      source = oald-stardict;
     };
   };
 
