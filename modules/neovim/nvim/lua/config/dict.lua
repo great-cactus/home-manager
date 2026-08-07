@@ -20,7 +20,7 @@ local function lookup(word, callback)
   end
   vim.system({ wn, word, '-over' }, { text = true }, function(obj)
     vim.schedule(function()
-      if obj.code ~= 0 or obj.stdout == '' then
+      if obj.stdout == '' then
         vim.notify('No definition found for: ' .. word, vim.log.levels.WARN)
         return
       end
