@@ -12,19 +12,42 @@ local function get_cword()
   return word
 end
 
+-- Remove unwanted sections and artifacts from OALD definition
+local function clean_definition(text)
+  -- Remove "Word Origin:" sections (may appear multiple times)
+  text = text:gsub('\nWord Origin:\n.-\n([%s]*\n)', '\n%1')
+  text = text:gsub('\nWord Origin:\n.*$', '')
+  -- Remove "Example Bank:" sections
+  text = text:gsub('\nExample Bank:\n.-\n([%s]*\n)', '\n%1')
+  text = text:gsub('\nExample Bank:\n.*$', '')
+  -- Remove "Verb forms:" image references
+  text = text:gsub('\nVerb forms:[^\n]*', '')
+  -- Remove .wav/.jpg file references
+  text = text:gsub('%s*[%w_]-%.wav', '')
+  text = text:gsub('%s*[%w_]-%.jpg', '')
+  return text
+end
+
 local function lookup(word, callback)
   local sdcv = vim.fn.exepath('sdcv')
   if sdcv == '' then
     vim.notify('sdcv command not found', vim.log.levels.ERROR)
     return
   end
-  vim.system({ sdcv, '-n', '-e', word }, { text = true }, function(obj)
+  vim.system({ sdcv, '-n', '-e', '--json', word }, { text = true }, function(obj)
     vim.schedule(function()
-      if obj.stdout == '' or obj.stdout:match('^Nothing similar to') then
+      if obj.stdout == '' then
         vim.notify('No definition found for: ' .. word, vim.log.levels.WARN)
         return
       end
-      local lines = vim.split(obj.stdout, '\n', { trimempty = true })
+      local ok, entries = pcall(vim.json.decode, obj.stdout)
+      if not ok or #entries == 0 then
+        vim.notify('No definition found for: ' .. word, vim.log.levels.WARN)
+        return
+      end
+      -- Use only the first entry to avoid duplicates
+      local definition = clean_definition(entries[1].definition)
+      local lines = vim.split(definition, '\n', { trimempty = true })
       callback(lines, word)
     end)
   end)
