@@ -634,21 +634,18 @@ let g:EasyMotion_smartcase = 1 "Turn on case insensitive feature
 
 [plugins.ftplugin]
 tex_plaintex_latex = '''
-"autocmd MyAutoCmd FileType tex call <SID>TeXKeymap()
-autocmd MyAutoCmd FileType tex
-  \ autocmd BufWritePre <buffer> call <SID>FixPunctuation()
 autocmd MyAutoCmd FileType tex call s:TEXKeymap()
+autocmd MyAutoCmd FileType tex
+  \ autocmd BufWritePre <buffer> lua require('config.comma_period').fix_punctuation()
+autocmd MyAutoCmd FileType tex
+  \ autocmd BufWritePre <buffer> call s:TrimTrailingWhitespace()
 
 function! s:TEXKeymap() abort
   inoremap \mr<SPACE> \mathrm{}<LEFT>
 endfunction
-function! s:FixPunctuation() abort
+function! s:TrimTrailingWhitespace() abort
   let l:pos = getpos('.')
-  " その他の句点を全角ピリオドに変換
-  silent! execute ':%s/[。]/．/g'
-  silent! execute ':%s/、/，/g'
   silent! execute ':%s/\\\@<!\s\+$//'
-  setlocal modified
   call setpos('.', l:pos)
 endfunction
 '''
@@ -656,17 +653,16 @@ endfunction
 markdown = '''
 autocmd MyAutoCmd FileType markdown call s:MDKeymap()
 autocmd MyAutoCmd FileType markdown
-  \ autocmd BufWritePre <buffer> call s:FixPunctuation()
+  \ autocmd BufWritePre <buffer> lua require('config.comma_period').fix_punctuation()
+autocmd MyAutoCmd FileType markdown
+  \ autocmd BufWritePre <buffer> call s:TrimTrailingWhitespace()
 
 function! s:MDKeymap() abort
   inoremap \mr<SPACE> \mathrm{}<LEFT>
 endfunction
-function! s:FixPunctuation() abort
+function! s:TrimTrailingWhitespace() abort
   let l:pos = getpos('.')
-  silent! execute ':%s/。/./g'
-  silent! execute ':%s/、/,/g'
   silent! execute ':%s/\\\@<!\s\+$//'
-  setlocal modified
   call setpos('.', l:pos)
 endfunction
 
@@ -675,14 +671,13 @@ autocmd MyAutoCmd FileType markdown syntax match htmlTagConceal /<\/\?[a-zA-Z][a
 
 typst = '''
 autocmd MyAutoCmd FileType typst
-  \ autocmd BufWritePre <buffer> call s:FixPunctuation()
+  \ autocmd BufWritePre <buffer> lua require('config.comma_period').fix_punctuation()
+autocmd MyAutoCmd FileType typst
+  \ autocmd BufWritePre <buffer> call s:TrimTrailingWhitespace()
 
-function! s:FixPunctuation() abort
+function! s:TrimTrailingWhitespace() abort
   let l:pos = getpos('.')
-  silent! execute ':%s/。/．/g'
-  silent! execute ':%s/、/，/g'
   silent! execute ':%s/\\\@<!\s\+$//'
-  setlocal modified
   call setpos('.', l:pos)
 endfunction
 '''

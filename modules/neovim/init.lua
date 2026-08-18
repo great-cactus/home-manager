@@ -358,6 +358,7 @@ require('config.smart_scroll').setup({
 })
 require('config.dict').setup()
 require('config.one_sentence_per_line').setup()
+require('config.comma_period').setup()
 require('config.runner').setup({
   run_key = '<F5>',
   output_key = '<leader>ro',
