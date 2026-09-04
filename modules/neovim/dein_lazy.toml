@@ -765,6 +765,15 @@ lua_source = '''
 local obsidian_vault = vim.fn.expand("$OBSIDIAN_PATH")
 local attachments_dir = "Attachments"
 
+-- 画像 float の上限サイズ (端末サイズに対する比率)
+local doc_width_ratio, doc_height_ratio = 0.6, 0.8
+local function doc_max_width()
+  return math.floor(vim.o.columns * doc_width_ratio)
+end
+local function doc_max_height()
+  return math.floor(vim.o.lines * doc_height_ratio)
+end
+
 require("snacks").setup({
   image = {
     enabled = true,
@@ -777,8 +786,8 @@ require("snacks").setup({
       enabled = true,
       inline = false,
       float = true,
-      max_width = math.floor(vim.o.columns * 0.7),
-      max_height = math.floor(vim.o.lines * 0.8),
+      max_width = doc_max_width(),
+      max_height = doc_max_height(),
     },
     resolve = function(file, src)
       local current_dir = vim.fn.fnamemodify(file, ":h")
@@ -823,6 +832,53 @@ require("snacks").setup({
   statuscolumn = { enabled = false },
   words = { enabled = false },
 })
+
+-- 上限サイズをウィンドウのリサイズに追従させる (setup 時の値は固定のため)
+vim.api.nvim_create_autocmd("VimResized", {
+  group = vim.api.nvim_create_augroup("snacks_image_doc_size", { clear = true }),
+  callback = function()
+    Snacks.image.config.doc.max_width = doc_max_width()
+    Snacks.image.config.doc.max_height = doc_max_height()
+  end,
+})
+
+-- WSL では WezTerm が Windows 側のプロセスとして動くため、snacks の画像表示に 2 つ補正が要る。
+if vim.fn.has("wsl") == 1 then
+  local terminal = require("snacks.image.terminal")
+
+  -- (1) WSL の pty はピクセル寸法を報告しない (TIOCGWINSZ の xpixel/ypixel が 0)。
+  --     snacks はセルサイズ 0 と判定し画像を 0 セルに潰すため、実測値で上書きする。
+  --     WezTerm: Bizin Gothic NF 12pt @ 144dpi (Windows 150% scaling) = 15 x 32 px/cell
+  local cell_width, cell_height = 15, 32
+  local ioctl_size = terminal.size
+  terminal.size = function()
+    local size = ioctl_size()
+    if size.cell_width > 0 and size.cell_height > 0 then
+      return size
+    end
+    return {
+      width = vim.o.columns * cell_width,
+      height = vim.o.lines * cell_height,
+      columns = vim.o.columns,
+      rows = vim.o.lines,
+      cell_width = cell_width,
+      cell_height = cell_height,
+      scale = math.max(1, cell_width / 8),
+    }
+  end
+
+  -- (2) kitty graphics のファイルパス転送 (t=f) は端末側がファイルを読むため、
+  --     Windows 側の WezTerm から WSL のパスを開けず何も描画されない。
+  --     SSH 経由と同じデータ直接転送 (t=d) を使わせる。
+  local detected_env = terminal.env
+  terminal.env = function()
+    local env = detected_env()
+    if env.remote then
+      return env
+    end
+    return vim.tbl_extend("force", env, { remote = true })
+  end
+end
 '''
 #_____________________________________________________________ End snacks.nvim
 
