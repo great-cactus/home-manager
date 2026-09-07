@@ -252,7 +252,152 @@ local function open_daily_note()
     vim.cmd("bdelete")
   end
 
-  vim.cmd("tabedit " .. vim.fn.fnameescape(daily_note_path))
+  local buf = vim.api.nvim_get_current_buf()
+  local is_empty = vim.api.nvim_buf_get_name(buf) == ""
+    and vim.bo[buf].modified == false
+    and vim.api.nvim_buf_line_count(buf) <= 1
+    and vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] == ""
+
+  if is_empty then
+    vim.cmd("edit " .. vim.fn.fnameescape(daily_note_path))
+  else
+    vim.cmd("tabedit " .. vim.fn.fnameescape(daily_note_path))
+  end
 end
 
 vim.keymap.set('n', '<leader>od', open_daily_note, { desc = 'Open Obsidian Daily Note in new tab' })
+
+-- Compose note from visual selection
+local compose_config = {
+  output_dir = "Output",
+  template = "Templates/front_matter.md",
+  command = "ObsidianCompose",
+}
+
+local function resolve_template(raw, title)
+  local result = raw:gsub("<%%tp%.file%.title%%>", title)
+  result = result:gsub(
+    '<%%tp%.file%.creation_date%("YYYY%-MM%-DD"%)%%>',
+    os.date("%Y-%m-%d")
+  )
+  result = result:gsub(
+    '<%%tp%.file%.creation_date%("YYYYMMDDhhmmss"%)%%>',
+    os.date("%Y%m%d%H%M%S")
+  )
+  result = result:gsub(
+    '<%%tp%.file%.creation_date%("YYYY/MM/DD"%)%%>',
+    os.date("%Y/%m/%d")
+  )
+  return result
+end
+
+local function compose_note(line1, line2)
+  local src_buf = vim.api.nvim_get_current_buf()
+  local lines = vim.api.nvim_buf_get_lines(src_buf, line1 - 1, line2, false)
+  if #lines == 0 then
+    vim.notify("No selection", vim.log.levels.WARN)
+    return
+  end
+
+  -- Detect H1 heading for default filename
+  local default_name = ""
+  for _, line in ipairs(lines) do
+    local heading = line:match("^# (.+)")
+    if heading then
+      default_name = heading:gsub("%s+", "_")
+      break
+    end
+  end
+
+  -- Floating window for filename input
+  local width = 60
+  local height = 1
+  local input_buf = vim.api.nvim_create_buf(false, true)
+
+  if default_name ~= "" then
+    vim.api.nvim_buf_set_lines(input_buf, 0, -1, false, { default_name })
+  end
+
+  local win = vim.api.nvim_open_win(input_buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = (vim.o.columns - width) / 2,
+    row = (vim.o.lines - height) / 2,
+    style = 'minimal',
+    border = 'rounded',
+    title = ' ObsidianCompose ',
+    title_pos = 'center',
+  })
+
+  if default_name ~= "" then
+    vim.cmd('startinsert!')
+  else
+    vim.cmd('startinsert')
+  end
+
+  local function close()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    vim.cmd('stopinsert')
+  end
+
+  vim.keymap.set('i', '<CR>', function()
+    local filename = vim.api.nvim_buf_get_lines(input_buf, 0, 1, false)[1]
+    close()
+
+    if not filename or filename == "" then
+      return
+    end
+
+    local obsidian_path = vim.fn.expand("$OBSIDIAN_PATH")
+    local file_path = obsidian_path .. "/" .. compose_config.output_dir .. "/" .. filename .. ".md"
+
+    if vim.fn.filereadable(file_path) == 1 then
+      vim.notify("Error: " .. compose_config.output_dir .. "/" .. filename .. ".md already exists.", vim.log.levels.WARN)
+      return
+    end
+
+    -- Read and resolve frontmatter template
+    local template_path = obsidian_path .. "/" .. compose_config.template
+    local template_file = io.open(template_path, "r")
+    if not template_file then
+      vim.notify("Failed to read template: " .. template_path, vim.log.levels.ERROR)
+      return
+    end
+    local frontmatter = resolve_template(template_file:read("*a"), filename)
+    template_file:close()
+
+    -- Build content: frontmatter + blank line + selected text
+    local body = table.concat(lines, "\n")
+    local content = frontmatter .. "\n" .. body .. "\n"
+
+    local file = io.open(file_path, "w")
+    if not file then
+      vim.notify("Failed to create file: " .. file_path, vim.log.levels.ERROR)
+      return
+    end
+    file:write(content)
+    file:close()
+
+    -- Replace selection with wikilink
+    vim.api.nvim_buf_set_lines(src_buf, line1 - 1, line2, false, { "[[" .. filename .. "]]" })
+
+    vim.cmd("edit " .. vim.fn.fnameescape(file_path))
+    vim.notify("Composed note: " .. filename, vim.log.levels.INFO)
+  end, { buffer = input_buf })
+
+  vim.keymap.set({ 'i', 'n' }, '<Esc>', close, { buffer = input_buf })
+end
+
+local function setup_compose(opts)
+  compose_config = vim.tbl_extend("force", compose_config, opts or {})
+  vim.api.nvim_create_user_command(compose_config.command, function(o)
+    compose_note(o.line1, o.line2)
+  end, { range = true })
+end
+
+setup_compose()
+
+return { setup_compose = setup_compose }
