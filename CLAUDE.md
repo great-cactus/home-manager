@@ -41,6 +41,7 @@ nix develop
 |---|---|
 | `modules/zsh/` | zsh本体設定・エイリアス・カスタム関数 |
 | `modules/neovim/` | Neovim設定（dein.vim + Lua config + LSP + スニペット） |
+| `modules/mail/` | メール設定（notmuch + mbsync + msmtp + pass + GPG） |
 | `modules/claude/` | `~/.claude/settings.json`（宣言的生成）・`rules/`・`skills/` の管理 |
 | `modules/wezterm/` | WezTerm設定。WSL環境では `home.activation` でWindows側（`/mnt/c/Users/<user>/.config/wezterm/`）にコピー |
 
