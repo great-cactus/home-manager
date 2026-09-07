@@ -1450,6 +1450,23 @@ hook_source = '''
   augroup end
 '''
 
+#_____________________________________________________________ Start notmuch.nvim
+[[plugins]]
+repo = 'yousefakbar/notmuch.nvim'
+on_cmd = ['Notmuch', 'NmSearch', 'Inbox', 'ComposeMail', 'NotmuchDrafts']
+hook_add = '''
+nnoremap <silent> <leader>nm :Notmuch<CR>
+nnoremap <silent> <leader>ni :Inbox<CR>
+nnoremap <silent> <leader>nc :ComposeMail<CR>
+'''
+lua_source = '''
+require('notmuch').setup({
+  maildir_sync_cmd = 'mbsync -a',
+  render_html_body = true,
+})
+'''
+#_____________________________________________________________ End notmuch.nvim
+
 #_____________________________________________________________ Kensaku
 [[plugins]]
 repo = 'lambdalisue/vim-kensaku'
