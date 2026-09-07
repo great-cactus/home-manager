@@ -48,6 +48,20 @@
         setopt extendedglob nomatch correct no_beep appendhistory
 
         autoload -U colors; colors
+
+        # Vi mode indicator
+        function zle-keymap-select zle-line-init {
+          case $KEYMAP in
+            vicmd)      VI_MODE="%F{$PROMPT_COLOR}[VI-N]" ;;
+            viins|main) VI_MODE="" ;;
+          esac
+          PROMPT="%F{$PROMPT_COLOR}%n@''${WIN_DEVICE}%f''${VI_MODE}:%~
+>>"
+          zle reset-prompt
+        }
+        zle -N zle-keymap-select
+        zle -N zle-line-init
+
         PROMPT="%F{$PROMPT_COLOR}%n@''${WIN_DEVICE}%f:%~
 >>"
 
