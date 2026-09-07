@@ -22,6 +22,7 @@
     ./modules/neovim
     ./modules/claude
     ./modules/wezterm
+    ./modules/mail
   ];
 
   home.packages = with pkgs; [
