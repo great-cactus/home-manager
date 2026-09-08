@@ -114,5 +114,9 @@ in
     ".claude/skills/travel-planning/SKILL.md".source = ./skills/travel-planning/SKILL.md;
     ".claude/skills/grill-me/SKILL.md".source        = ./skills/grill-me/SKILL.md;
     ".claude/skills/grilling/SKILL.md".source         = ./skills/grilling/SKILL.md;
+
+    # Token compression skills
+    ".claude/skills/caveman/SKILL.md".source   = ./skills/caveman/SKILL.md;
+    ".claude/skills/genshijin/SKILL.md".source = ./skills/genshijin/SKILL.md;
   };
 }
