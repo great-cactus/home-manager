@@ -1460,10 +1460,7 @@ nnoremap <silent> <leader>ni :Inbox<CR>
 nnoremap <silent> <leader>nc :ComposeMail<CR>
 '''
 lua_source = '''
-require('notmuch').setup({
-  maildir_sync_cmd = 'mbsync -a',
-  render_html_body = true,
-})
+require('plugins.notmuch')
 '''
 #_____________________________________________________________ End notmuch.nvim
 

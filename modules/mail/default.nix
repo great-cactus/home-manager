@@ -110,8 +110,28 @@ in
   # notmuch (mail indexer)
   programs.notmuch = {
     enable = true;
-    new.tags = [ "new" "unread" "inbox" ];
+    new.tags = [ "new" "unread" ];
     search.excludeTags = [ "deleted" "spam" ];
+
+    # Gmail のフォルダ構成を notmuch タグに反映する
+    # - Inbox フォルダにある物だけ inbox（Gmail 側でアーカイブすると外れる）
+    # - ラベル（サブフォルダ）は同名タグ。Inbox と [Gmail] は除外
+    # フォルダ名は実行時に走査するため、ラベル追加時の編集は不要
+    hooks.postNew = ''
+      maildir="${config.accounts.email.accounts.tohoku.maildir.absPath}"
+
+      notmuch tag +inbox -- tag:new and folder:tohoku/Inbox
+      notmuch tag -inbox -- tag:inbox and not folder:tohoku/Inbox
+
+      for dir in "$maildir"/*/; do
+        name=$(basename "$dir")
+        case "$name" in Inbox|"[Gmail]") continue ;; esac
+        notmuch tag "+$name" -- tag:new and "folder:tohoku/$name"
+        notmuch tag "-$name" -- "tag:$name" and not "folder:tohoku/$name"
+      done
+
+      notmuch tag -new -- tag:new
+    '';
   };
 
   # notmuch.nvim が libnotmuch.so を FFI で読み込むためライブラリパスを追加
@@ -122,7 +142,9 @@ in
   home.packages = [
     mail-oauth2
     mail-oauth2-authorize
-    pkgs.w3m  # notmuch.nvim の HTML メールレンダリング用
+    pkgs.w3m     # notmuch.nvim の HTML メールレンダリング用
+    pkgs.pandoc  # notmuch.nvim の Office 添付プレビュー用
+    pkgs.unzip   # notmuch.nvim の ZIP 添付一覧用
   ];
 
 
