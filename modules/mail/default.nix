@@ -6,7 +6,7 @@ let
 
   # OAuth2 アクセストークンを取得するラッパー（mbsync/msmtp の PassCmd 用）
   mail-oauth2 = pkgs.writeShellScriptBin "mail-oauth2" ''
-    export GPG_TTY=$(tty)
+    export GPG_TTY="''${GPG_TTY:-$(tty)}"
     exec ${pkgs.python3}/bin/python3 ${mutt-oauth2} ${tokenFile}
   '';
 
@@ -43,6 +43,11 @@ in
   services.gpg-agent = {
     enable = true;
     pinentry.package = pkgs.pinentry-curses;
+    defaultCacheTtl = 86400;      # 24h
+    maxCacheTtl = 86400;          # 24h
+    extraConfig = ''
+      allow-loopback-pinentry
+    '';
   };
 
   # pass (password-store)

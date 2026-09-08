@@ -40,6 +40,10 @@
         # ~/.env から環境変数を読み込み
         [ -f ~/.local/bin/import-env.sh ] && . ~/.local/bin/import-env.sh ~/.env
 
+        # GPG: pinentry が TTY を見つけられるようグローバル設定
+        export GPG_TTY=$(tty)
+        gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
+
         # WezTerm wsl_domains では TERM が xterm-256color になるため修正
         # $WEZTERM_PANE は wsl_domains 経由だと未設定なので $TERM_PROGRAM で判定
         [ "$TERM_PROGRAM" = "WezTerm" ] && export TERM=wezterm
