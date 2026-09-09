@@ -138,15 +138,19 @@ in
     enable = true;
     package = isync-xoauth2;
     frequency = "*:0/5";
-    postExec = "${config.programs.notmuch.package}/bin/notmuch new";
   };
 
-  # systemd user 環境の PATH には nix profile が無いため、
-  # mutt_oauth2.py が呼ぶ gpg と notmuch hook の基本コマンドを明示する
-  systemd.user.services.mbsync.Service.Environment = [
-    "PATH=${lib.makeBinPath [ config.programs.gpg.package pkgs.coreutils ]}"
-    "NOTMUCH_CONFIG=${config.xdg.configHome}/notmuch/default/config"
-  ];
+  systemd.user.services.mbsync.Service = {
+    # systemd user 環境の PATH には nix profile が無いため、
+    # mutt_oauth2.py が呼ぶ gpg と notmuch hook の基本コマンドを明示する
+    Environment = [
+      "PATH=${lib.makeBinPath [ config.programs.gpg.package pkgs.coreutils ]}"
+      "NOTMUCH_CONFIG=${config.xdg.configHome}/notmuch/default/config"
+    ];
+    # ExecStopPost は mbsync が途中で失敗しても走る（Gmail の帯域制限で
+    # 切断された場合など）→ 取込済みの分だけでも索引する
+    ExecStopPost = "${config.programs.notmuch.package}/bin/notmuch new";
+  };
 
   # msmtp (SMTP send)
   programs.msmtp.enable = true;
