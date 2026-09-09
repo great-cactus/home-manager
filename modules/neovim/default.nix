@@ -5,7 +5,7 @@ let
     let
       ts = pkgs.vimPlugins.nvim-treesitter;
       withParsers = ts.withPlugins (p: with p; [
-        bash cpp diff fortran javascript
+        bash cpp diff fortran javascript julia
         latex lua markdown markdown_inline nix python
         query regex toml typescript typst vimdoc
       ]);
