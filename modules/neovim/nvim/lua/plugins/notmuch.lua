@@ -57,8 +57,13 @@ if is_wsl then
   }
 end
 
+-- Route manual sync (%) through the systemd unit so it never races the timer.
+local sync_cmd = vim.fn.executable("systemctl") == 1
+    and "systemctl --user start --wait mbsync.service"
+  or "mbsync -a"
+
 require("notmuch").setup({
-  maildir_sync_cmd = "mbsync -a",
+  maildir_sync_cmd = sync_cmd,
   render_html_body = true,
   thread_auto_expand = "first",
   send = { send_mode = "terminal" },

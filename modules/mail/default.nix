@@ -22,6 +22,12 @@ let
     '';
   };
 
+  # WSL 起動後の初回用: GPG パスフレーズを入力してキャッシュし、即時同期を起動する
+  mail-unlock = pkgs.writeShellScriptBin "mail-unlock" ''
+    ${mail-oauth2}/bin/mail-oauth2 >/dev/null || exit 1
+    systemctl --user start mbsync.service && echo "mbsync started"
+  '';
+
   # 初回認可用スクリプト（対話的に実行）
   mail-oauth2-authorize = pkgs.writeShellScriptBin "mail-oauth2-authorize" ''
     mkdir -p "$(dirname ${tokenFile})"
@@ -80,10 +86,32 @@ in
 
       mbsync = {
         enable = true;
-        create = "maildir";
-        expunge = "both";
         extraConfig.account = {
           AuthMechs = "XOAUTH2";
+        };
+        # 2 チャンネル構成:
+        # - main: Inbox・ラベル・送信済みを通常同期（フラグ・削除も双方向）
+        # - archive: 「すべてのメール」は新着取込のみ (Sync New)。
+        #   全複製 (約 4 万通) のフラグ照合を毎回行わないため高速。
+        #   副作用: Gmail 側で削除したメールはローカルに残る
+        groups.tohoku.channels = {
+          main = {
+            patterns = [ "*" "![Gmail]*" "[Gmail]/送信済みメール" ];
+            extraConfig = {
+              Create = "Near";
+              Expunge = "Both";
+              SyncState = "*";
+            };
+          };
+          archive = {
+            farPattern = "[Gmail]/すべてのメール";
+            nearPattern = "[Gmail]/すべてのメール";
+            extraConfig = {
+              Create = "Near";
+              Sync = "New";
+              SyncState = "*";
+            };
+          };
         };
       };
 
@@ -103,6 +131,22 @@ in
     enable = true;
     package = isync-xoauth2;
   };
+
+  # 5 分毎に systemd user timer で同期し、続けて notmuch new を実行する。
+  # WSL 起動直後は GPG 未キャッシュのため失敗し続ける → `mail-unlock` を一度実行する
+  services.mbsync = {
+    enable = true;
+    package = isync-xoauth2;
+    frequency = "*:0/5";
+    postExec = "${config.programs.notmuch.package}/bin/notmuch new";
+  };
+
+  # systemd user 環境の PATH には nix profile が無いため、
+  # mutt_oauth2.py が呼ぶ gpg と notmuch hook の基本コマンドを明示する
+  systemd.user.services.mbsync.Service.Environment = [
+    "PATH=${lib.makeBinPath [ config.programs.gpg.package pkgs.coreutils ]}"
+    "NOTMUCH_CONFIG=${config.xdg.configHome}/notmuch/default/config"
+  ];
 
   # msmtp (SMTP send)
   programs.msmtp.enable = true;
@@ -142,6 +186,7 @@ in
   home.packages = [
     mail-oauth2
     mail-oauth2-authorize
+    mail-unlock
     pkgs.w3m     # notmuch.nvim の HTML メールレンダリング用
     pkgs.pandoc  # notmuch.nvim の Office 添付プレビュー用
     pkgs.unzip   # notmuch.nvim の ZIP 添付一覧用
