@@ -376,6 +376,21 @@ hook_source = '''
     \     },
     \ })
 
+    " obsidian.nvim (in-process LSP) completes [[links]] and #tags.
+    " ddc converts 'iskeyword' to ASCII only, so CJK must be added explicitly
+    " for keywordPattern (complete position / filtering) and
+    " '#' / '[' are keywords too so the complete position matches the start of
+    " obsidian-ls textEdit ranges (#tag, [[link) and the whole token is replaced.
+    " forceCompletionPattern (auto trigger regardless of keyword length).
+    " timeout: rg over a WSL NTFS mount takes ~1s; ddc default is 2000ms.
+    call ddc#custom#patch_filetype('markdown', 'sourceOptions', {
+    \   'lsp': {
+    \       'keywordPattern': '[[:keyword:]\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF66-\uFF9F/#\[-]*',
+    \       'forceCompletionPattern': '\.|:|->|"\w+/*|\[\[[^\]]*|#[^\s#]*',
+    \       'timeout': 5000,
+    \   },
+    \ })
+
     call ddc#enable()
 
     inoremap <silent><expr> <TAB>

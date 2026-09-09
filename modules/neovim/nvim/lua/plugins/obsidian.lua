@@ -38,6 +38,12 @@ require("obsidian").setup{
   completion = {
     min_chars = 3,
   },
+  search = {
+    -- rg --sortr=modified runs single-threaded and stats every file.
+    -- On a WSL NTFS mount (/mnt/c) that costs ~5s per completion request,
+    -- exceeding ddc's source timeout. Unsorted rg takes <1s.
+    sort_by = false,
+  },
   footer = {
     enabled = false, -- turn it off
     separator = false, -- turn it off
@@ -399,5 +405,54 @@ local function setup_compose(opts)
 end
 
 setup_compose()
+
+-- Safety net for rg exit code 2 (partial I/O error, e.g. a vault entry whose
+-- UTF-8 name exceeds Linux NAME_MAX=255 bytes makes readdir fail on /mnt/c).
+-- find_tags_async calls its callback twice on a non-zero code, which makes the
+-- LSP completion handler return an empty list. Mask code 2 as 0 so the partial
+-- results are used. Root fix: keep vault file names under 255 bytes.
+local search = require("obsidian.search")
+local orig_search_async = search.search_async
+search.search_async = function(dir, term, opts, on_match, on_exit)
+  return orig_search_async(dir, term, opts, on_match, function(code)
+    if on_exit then
+      on_exit(code == 2 and 0 or code)
+    end
+  end)
+end
+
+-- >>> ddc-word-fix
+-- ddc-source-lsp builds the word it inserts while cycling candidates from
+-- insertText (falling back to label); textEdit is only applied on <C-y>.
+-- obsidian-ls items carry the text only in textEdit, so Tab inserted the
+-- decorated label ("Tag: #PERMANENT"). Derive insertText from textEdit:
+-- the newText minus whatever the edit range covers after the cursor (e.g.
+-- an auto-paired "]]"), so the inserted word is right even before confirming.
+local function with_insert_text(item, cursor_character)
+  if item.insertText or not item.textEdit then
+    return item
+  end
+  local new_text = item.textEdit.newText
+  local covered_after = item.textEdit.range["end"].character - cursor_character
+  if covered_after > 0 and #new_text > covered_after then
+    new_text = new_text:sub(1, #new_text - covered_after)
+  end
+  return vim.tbl_extend("force", item, { insertText = new_text })
+end
+
+local lsp_handlers = require("obsidian.lsp.handlers")
+local orig_completion = lsp_handlers["textDocument/completion"]
+lsp_handlers["textDocument/completion"] = function(params, callback, ...)
+  return orig_completion(params, function(err, result)
+    if not (result and result.items) then
+      return callback(err, result)
+    end
+    local items = vim.tbl_map(function(item)
+      return with_insert_text(item, params.position.character)
+    end, result.items)
+    return callback(err, vim.tbl_extend("force", result, { items = items }))
+  end, ...)
+end
+-- <<< ddc-word-fix
 
 return { setup_compose = setup_compose }
