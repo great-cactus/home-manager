@@ -58,8 +58,10 @@ if is_wsl then
 end
 
 -- Route manual sync (%) through the systemd unit so it never races the timer.
+-- `start` blocks until the oneshot unit finishes; `--wait` needs D-Bus,
+-- which the WSL user session does not provide.
 local sync_cmd = vim.fn.executable("systemctl") == 1
-    and "systemctl --user start --wait mbsync.service"
+    and "systemctl --user start mbsync.service"
   or "mbsync -a"
 
 require("notmuch").setup({
