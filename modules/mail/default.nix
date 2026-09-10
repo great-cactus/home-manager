@@ -140,16 +140,28 @@ in
     frequency = "*:0/5";
   };
 
-  systemd.user.services.mbsync.Service = {
+  systemd.user.services.mbsync.Service = let
+    notmuch = "${config.programs.notmuch.package}/bin/notmuch";
+  in {
     # systemd user 環境の PATH には nix profile が無いため、
     # mutt_oauth2.py が呼ぶ gpg と notmuch hook の基本コマンドを明示する
     Environment = [
       "PATH=${lib.makeBinPath [ config.programs.gpg.package pkgs.coreutils ]}"
       "NOTMUCH_CONFIG=${config.xdg.configHome}/notmuch/default/config"
     ];
+    # アーカイブ同期: mbsync 実行前に、inbox タグが外されたメッセージを
+    # Inbox maildir から削除する。mbsync が削除を Gmail に伝播し、
+    # 受信トレイから除外される（= アーカイブ）。
+    ExecStartPre = "${pkgs.writeShellScript "notmuch-archive-sync" ''
+      ${notmuch} search --output=files -- folder:tohoku/Inbox and not tag:inbox \
+        | while IFS= read -r f; do
+            [ -f "$f" ] && rm -- "$f"
+          done
+      exit 0
+    ''}";
     # ExecStopPost は mbsync が途中で失敗しても走る（Gmail の帯域制限で
     # 切断された場合など）→ 取込済みの分だけでも索引する
-    ExecStopPost = "${config.programs.notmuch.package}/bin/notmuch new";
+    ExecStopPost = "${notmuch} new";
   };
 
   # msmtp (SMTP send)
