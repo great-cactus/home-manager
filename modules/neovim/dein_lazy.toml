@@ -1470,8 +1470,8 @@ hook_source = '''
 repo = 'yousefakbar/notmuch.nvim'
 on_cmd = ['Notmuch', 'NmSearch', 'Inbox', 'ComposeMail', 'NotmuchDrafts']
 hook_add = '''
-nnoremap <silent> <leader>nm :Notmuch<CR>
-nnoremap <silent> <leader>ni :Inbox<CR>
+nnoremap <silent> <leader>nm :Inbox<CR>
+nnoremap <silent> <leader>ni :Notmuch<CR>
 nnoremap <silent> <leader>nc :ComposeMail<CR>
 '''
 lua_source = '''
