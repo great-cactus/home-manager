@@ -21,14 +21,11 @@
     ./modules/zsh
     ./modules/neovim
     ./modules/claude
-    ./modules/wezterm
-    ./modules/mail
   ];
 
   home.packages = with pkgs; [
     corefonts
     gh
-    uv
     fzf
     cargo
     deno
@@ -37,16 +34,6 @@
     trash-cli
     llama-cpp
     claude-code
-    julia-bin
-    ffmpeg
-    cmake
-    gnumake
-    ninja
-    evince
-    librsvg
-    fd
-    wl-clipboard
-    gcc
   ];
 
   # import-env.sh を ~/.local/bin に配置
