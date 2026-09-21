@@ -1,5 +1,5 @@
 -- copilot.lua: inline completion (ghost text)
-require('copilot').setup({
+local copilot_opts = {
   suggestion = {
     enabled = true,
     auto_trigger = true,
@@ -17,7 +17,21 @@ require('copilot').setup({
     gitcommit = true,
     markdown = true,
   },
-})
+}
+
+-- Start only while online; see plugins/copilot_online.lua
+require('plugins.copilot_online').setup(function(is_online)
+  if not is_online then
+    if require('copilot').setup_done then
+      require('copilot.command').disable()
+    end
+  elseif require('copilot').setup_done then
+    require('copilot.command').enable()
+  else
+    require('copilot').setup(copilot_opts)
+  end
+  vim.lsp.enable('copilot_ls', is_online)
+end)
 
 -- Toggle commands
 local inline_enabled = true

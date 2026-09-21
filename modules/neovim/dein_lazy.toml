@@ -234,7 +234,7 @@ vim.lsp.config('copilot_ls', {
   cmd = { 'copilot-language-server', '--stdio' },
   root_markers = { '.git' },
 })
-vim.lsp.enable('copilot_ls')
+-- copilot_ls is enabled/disabled by plugins/copilot_online.lua
 require("copilot-lsp").setup()
 '''
 #_____________________________________________________________ End Copilot
