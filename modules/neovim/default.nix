@@ -91,6 +91,14 @@ in {
     };
   };
 
+  # Nix store 上の TOML は mtime が固定で dein が変更を検知できないため、
+  # 適用のたびにステートキャッシュを消して次回起動時に再生成させる
+  # (dein#clear_state() と同等)
+  home.activation.clearDeinState = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    $DRY_RUN_CMD rm -f "${config.home.homeDirectory}"/.cache/dein/.cache/*/state_*.vim \
+                       "${config.home.homeDirectory}"/.cache/dein/.cache/*/cache_*
+  '';
+
   xdg.configFile = {
     # dein プラグイン定義（~/.cache/dein/ ではなく ~/.config/nvim/dein/ に置く）
     # → dein のステートキャッシュ（~/.cache/dein/）と分離する
