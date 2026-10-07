@@ -46,7 +46,9 @@
     librsvg
     fd
     wl-clipboard
-    gcc
+    # gcc と gfortran は bin/cc 等を共有するため、gcc を優先させて衝突を回避する
+    (lib.hiPrio gcc)
+    gfortran
   ];
 
   # import-env.sh を ~/.local/bin に配置
