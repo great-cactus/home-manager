@@ -85,7 +85,7 @@
         export PATH="$HOME/projects/vim/src:$PATH"
         export PATH="$HOME/intelpython3/bin:$PATH"
 
-        export PYTHONPATH="$HOME/pythonScripts/_modules:$PATH"
+        export PYTHONPATH="$HOME/pythonScripts/_modules''${PYTHONPATH:+:$PYTHONPATH}"
         export DENO_INSTALL="$HOME/.deno"
 
         # CUDA
