@@ -23,6 +23,7 @@
     ./modules/claude
     ./modules/wezterm
     ./modules/mail
+    ./modules/python
   ];
 
   home.packages = with pkgs; [

@@ -1,0 +1,27 @@
+# Paper-figure style with the CUDO (Color Universal Design Organization) palette.
+# Usage: plt.style.use("cudo-paper")
+
+## Font
+font.family      : Times New Roman
+font.size        : 12
+mathtext.fontset : stix
+
+## Ticks
+xtick.direction : in
+ytick.direction : in
+
+## Axes: CUDO colors in recommended order (C0=red, C1=blue, ... C8=yellow)
+axes.prop_cycle : cycler('color', ['FF4B00', '005AFF', '03AF7A', '990099', 'F6AA00', '804000', '4DC4FF', 'FF8082', 'FFF100'])
+axes.formatter.use_mathtext : True
+axes.formatter.limits       : -1, 1  # scientific notation outside 1e-1..1e1
+
+## Legend
+legend.frameon : False
+
+## Figure: 90 mm wide (single column), aspect 4:3
+figure.figsize              : 3.543, 2.657
+figure.constrained_layout.use : True
+
+## Save
+savefig.dpi         : 300
+savefig.transparent : True

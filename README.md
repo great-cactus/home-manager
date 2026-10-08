@@ -10,6 +10,7 @@ Nix Home Managerを使った開発環境設定の管理リポジトリ.
 | `modules/neovim/` | Neovim設定（dein.vimプラグイン・LSP・スニペット等） |
 | `modules/claude/` | Claude Code設定（ルール・スキル・settings.json） |
 | `modules/wezterm/` | WezTerm設定（WSL環境でWindows側へコピー） |
+| `modules/python/` | matplotlibスタイル（`cudo-paper.mplstyle`） |
 
 ### パッケージ（`home.nix`で管理）
 
