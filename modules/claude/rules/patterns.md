@@ -1,5 +1,7 @@
 # Common Patterns
 
+> Scope: TypeScript/JavaScript (except "Skeleton Projects", which applies to all languages).
+
 ## API Response Format
 
 ```typescript

@@ -1,5 +1,7 @@
 # Testing Requirements
 
+> Scope: applications and libraries. One-off analysis/plotting scripts are exempt; verify them by running.
+
 ## Minimum Test Coverage: 80%
 
 Test Types (ALL required):

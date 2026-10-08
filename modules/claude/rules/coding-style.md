@@ -1,5 +1,7 @@
 # Coding Style
 
+> Scope: TypeScript/JavaScript. For Python, the `python-scripting` skill takes precedence.
+
 ## Immutability (CRITICAL)
 
 ALWAYS create new objects, NEVER mutate:
