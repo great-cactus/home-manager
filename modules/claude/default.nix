@@ -27,7 +27,8 @@ let
         "Bash(node *)"
         "Bash(python *)"
         "Bash(python3 *)"
-        "Bash(pip *)"
+        "Bash(uv *)"
+        "Bash(uvx *)"
         "Bash(cargo *)"
         "Bash(gh *)"
         "Bash(mkdir *)"
@@ -88,6 +89,7 @@ in
     # Skills (new format only)
     ".claude/skills/coding-standards/SKILL.md".source                  = ./skills/coding-standards/SKILL.md;
     ".claude/skills/smart-commit/SKILL.md".source                      = ./skills/smart-commit/SKILL.md;
+    ".claude/skills/python-scripting/SKILL.md".source                  = ./skills/python-scripting/SKILL.md;
     ".claude/skills/obsidian-create-permanent-note/SKILL.md".source    = ./skills/obsidian-create-permanent-note/SKILL.md;
 
     # Scientific writing review skills
