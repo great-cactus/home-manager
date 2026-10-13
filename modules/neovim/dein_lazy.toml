@@ -265,7 +265,17 @@ tnoremap <C-j>  <Plug>(skkeleton-toggle)
 nnoremap <C-j> i<Plug>(skkeleton-enable)
 '''
 hook_source = '''
+" eggLikeNewline で pum.vim の候補を確定するために登録する (pum.vim の FAQ より)
+" pum.vim は ddc.vim と一緒に遅延読み込みされるため、未読み込み時は非表示扱いにする
+call skkeleton#register_completion_backend('pum.vim', #{
+  \   complete_info: { -> exists('*pum#visible') && pum#visible()
+  \       ? pum#complete_info(['pum_visible', 'selected'])
+  \       : #{ pum_visible: v:false, selected: -1 } },
+  \   confirm_key: '<Cmd>call pum#map#confirm()',
+  \ })
+
 call skkeleton#config(#{
+  \completionBackend     : 'pum.vim',
   \globalDictionaries    : ['~/.cache/dein/repos/github.com/skk-dev/dict/SKK-JISYO.L'->expand()],
   \databasePath          : '~/.cache/skk/skkeleton.db'->expand(),
   \completionRankFile    : '~/.skk/rank.json'->expand(),
