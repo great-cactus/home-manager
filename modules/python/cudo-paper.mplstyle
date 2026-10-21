@@ -13,7 +13,6 @@ ytick.direction : in
 ## Axes: CUDO colors in recommended order (C0=red, C1=blue, ... C8=yellow)
 axes.prop_cycle : cycler('color', ['FF4B00', '005AFF', '03AF7A', '990099', 'F6AA00', '804000', '4DC4FF', 'FF8082', 'FFF100'])
 axes.formatter.use_mathtext : True
-axes.formatter.limits       : -1, 1  # scientific notation outside 1e-1..1e1
 
 ## Legend
 legend.frameon : False
