@@ -144,12 +144,13 @@ result.to_csv(OUTPUT_CSV, index=False)
 home-manager が `cudo-paper.mplstyle` を `stylelib/` に配置している。このスタイルにはフォント、目盛り、CUDO カラーサイクル、図のサイズ（幅 90 mm、4:3）、constrained_layout、保存時の dpi と透過の設定が入っている。**rcParams を手書きしない。**
 
 - 冒頭で `plt.style.use("cudo-paper")` を1回呼ぶ。
-- 色は CUDO カラーサイクルを使い、明示するときは `"C0"`（赤）、`"C1"`（青）、`"C2"`（緑）、`"C3"`（紫）、`"C4"`（橙）… で指定する。
+- 色は CUDO カラーサイクルを使う。明示するときは `import cudo` して `"cudo:red"`、`"cudo:blue"`、`"cudo:green"`、`"cudo:purple"`、`"cudo:orange"`、`"cudo:brown"`、`"cudo:sky"`、`"cudo:pink"`、`"cudo:yellow"` で指定する（`cudo.py` は home-manager が `PYTHONPATH` 上に配置済み）。
 - オブジェクト指向 API（`fig, ax = plt.subplots()`）を使う。`plt.plot` は使わない。
 - 軸ラベルには単位を付ける（`"Temperature (K)"`）。
 - 描画関数は「DataFrame とファイル名の stem を受け取って保存する」形にする。保存は png / pdf / svg の3形式で行う。
 
 ```python
+import cudo  # noqa: F401  (registers "cudo:<name>" colors)
 import matplotlib.pyplot as plt
 
 plt.style.use("cudo-paper")
