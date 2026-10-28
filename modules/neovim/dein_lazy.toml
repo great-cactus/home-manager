@@ -392,12 +392,15 @@ hook_source = '''
     " '#' / '[' are keywords too so the complete position matches the start of
     " obsidian-ls textEdit ranges (#tag, [[link) and the whole token is replaced.
     " forceCompletionPattern (auto trigger regardless of keyword length).
-    " timeout: rg over a WSL NTFS mount takes ~1s; ddc default is 2000ms.
+    " timeout: obsidian-ls answers within 2500ms (plugins/obsidian_completion.lua); ddc default is 2000ms.
+    " hideTimeout: ddc drops a gather slower than this (default 200ms); obsidian-ls
+    " takes 100-400ms on the WSL vault, so its results were silently discarded.
     call ddc#custom#patch_filetype('markdown', 'sourceOptions', {
     \   'lsp': {
     \       'keywordPattern': '[[:keyword:]\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF66-\uFF9F/#\[-]*',
     \       'forceCompletionPattern': '\.|:|->|"\w+/*|\[\[[^\]]*|#[^\s#]*',
     \       'timeout': 5000,
+    \       'hideTimeout': 3000,
     \   },
     \ })
 

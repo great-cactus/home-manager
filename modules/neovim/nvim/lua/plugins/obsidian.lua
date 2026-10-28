@@ -37,6 +37,9 @@ require("obsidian").setup{
   },
   completion = {
     min_chars = 3,
+    -- The "(create)" item names notes by zettel ID (titles are file names here)
+    -- and its preview costs ~0.5s of realpath/stat per request on /mnt/c.
+    create_new = false,
   },
   search = {
     -- rg --sortr=modified runs single-threaded and stats every file.
@@ -454,5 +457,8 @@ lsp_handlers["textDocument/completion"] = function(params, callback, ...)
   end, ...)
 end
 -- <<< ddc-word-fix
+
+-- Index-backed tag/link sources, response deadline and freeze watchdog
+require("plugins.obsidian_completion").setup()
 
 return { setup_compose = setup_compose }
