@@ -1,8 +1,14 @@
 { config, pkgs, ... }:
 
 let
+  # OBSIDIAN_PATH comes from ~/.env; skip it if unset at activation time.
+  obsidianPath = builtins.getEnv "OBSIDIAN_PATH";
+
   claudeSettings = {
     permissions = {
+      # Extra working directories: cd within them needs no permission prompt.
+      additionalDirectories =
+        [ "~/projects" ] ++ pkgs.lib.optional (obsidianPath != "") obsidianPath;
       # Edit/Write/NotebookEdit are intentionally not allowed: auto-approval skips
       # the permission prompt, so claudecode.nvim never receives openDiff.
       # Use Shift+Tab (accept edits mode) to auto-approve per session.
@@ -10,6 +16,10 @@ let
         "WebSearch"
         "WebFetch"
         "Agent"
+        # Read-only tools (secrets are blocked in deny)
+        "Read"
+        "Glob"
+        "Grep"
         "Bash(git add *)"
         "Bash(git commit *)"
         "Bash(git checkout *)"
@@ -56,6 +66,8 @@ let
         "Bash(dirname *)"
         "Bash(sha256sum *)"
         "Bash(md5sum *)"
+        "Bash(sed -n *)"
+        "Bash(nix-instantiate --parse *)"
         # Search
         "Bash(grep *)"
         "Bash(rg *)"
@@ -109,8 +121,14 @@ let
         "Read(./.env)"
         "Read(./.env.*)"
         "Read(~/.ssh/**)"
+        "Read(~/.gnupg/**)"
+        "Read(~/.password-store/**)"
         # Bash-side guard: Read() rules alone do not cover cat/grep/etc.
         "Bash(*.ssh*)"
+        "Bash(*.gnupg*)"
+        "Bash(*.password-store*)"
+        # sed -n is allowed for viewing; block in-place edits
+        "Bash(sed *-i*)"
       ];
     };
     model = "opus";
