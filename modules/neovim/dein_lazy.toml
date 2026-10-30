@@ -1537,7 +1537,14 @@ map('n', '<leader>ad', '<cmd>ClaudeCodeDiffDeny<CR>', 'Claude: deny diff')
 '''
 lua_source = '''
 require('claudecode').setup({
-  terminal = { provider = 'native' },
+  -- Launch Claude at the git root so cd within the repo needs no permission.
+  terminal = { provider = 'native', git_repo_cwd = true },
+  -- Show the diff full-screen in a new tab instead of splitting the current one.
+  diff_opts = {
+    layout = 'unified',
+    open_in_new_tab = true,
+    hide_terminal_in_new_tab = true,
+  },
 })
 
 -- Pass <Esc> through to Claude (interrupt / rewind); leave terminal mode with <C-q>.
