@@ -3,10 +3,10 @@
 let
   claudeSettings = {
     permissions = {
+      # Edit/Write/NotebookEdit are intentionally not allowed: auto-approval skips
+      # the permission prompt, so claudecode.nvim never receives openDiff.
+      # Use Shift+Tab (accept edits mode) to auto-approve per session.
       allow = [
-        "Edit"
-        "Write"
-        "NotebookEdit"
         "WebSearch"
         "WebFetch"
         "Agent"
