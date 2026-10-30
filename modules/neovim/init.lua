@@ -59,6 +59,7 @@ vim.opt.foldlevelstart = 99
 vim.opt.belloff        = 'all'
 vim.opt.backspace      = 'indent,eol,start'
 vim.opt.swapfile       = false
+vim.opt.timeoutlen     = 500
 
 -- Tab / indent
 vim.g.markdown_recommended_style = 0  -- keep global shiftwidth=2 for markdown
