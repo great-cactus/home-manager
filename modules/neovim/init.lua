@@ -347,7 +347,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
 
 -- Modules
 require('config.terminal')
-require('config.claude')
 require('config.substitute_nohl')
 require('config.lsp_treesitter_toggle').setup({ command = 'toggle' })
 require('config.tabline_toggle').setup()
