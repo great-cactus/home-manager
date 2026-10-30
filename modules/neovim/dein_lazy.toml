@@ -1539,22 +1539,16 @@ lua_source = '''
 require('claudecode').setup({
   -- Launch Claude at the git root so cd within the repo needs no permission.
   terminal = { provider = 'native', git_repo_cwd = true },
-  -- Show the diff full-screen in a new tab instead of splitting the current one.
-  diff_opts = {
-    layout = 'unified',
-    open_in_new_tab = true,
-    hide_terminal_in_new_tab = true,
-  },
 })
 
--- Pass <Esc> through to Claude (interrupt / rewind); leave terminal mode with <C-q>.
+-- Pass <Esc> through to Claude (interrupt / rewind); leave terminal mode with jj.
 -- Buffer name is term://{cwd}//{pid}:{path/to/}claude ...
 vim.api.nvim_create_autocmd('TermOpen', {
   group = vim.api.nvim_create_augroup('claudecode_term_keys', { clear = true }),
   callback = function(args)
     if not vim.api.nvim_buf_get_name(args.buf):match('//%d+:%S*claude') then return end
     vim.keymap.set('t', '<Esc>', '<Esc>', { buffer = args.buf, nowait = true })
-    vim.keymap.set('t', '<C-q>', [[<C-\><C-n>]], { buffer = args.buf })
+    vim.keymap.set('t', 'jj', [[<C-\><C-n>]], { buffer = args.buf })
   end,
 })
 '''
