@@ -14,7 +14,7 @@ Nix Home Managerを使った開発環境設定の管理リポジトリ.
 
 ### パッケージ（`home.nix`で管理）
 
-`corefonts`, `gh`, `uv`, `fzf`, `cargo`, `deno`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`, `cmake`, `gnumake`, `ninja`, `evince`
+`corefonts`, `gh`, `uv`, `fzf`, `cargo`, `nodejs_24`, `ripgrep`, `trash-cli`, `llama-cpp`, `claude-code`, `julia-bin`, `ffmpeg`, `cmake`, `gnumake`, `ninja`, `evince`
 
 ### ローカルパッケージ（`pkgs/`で管理）
 

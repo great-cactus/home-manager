@@ -249,243 +249,21 @@ require("copilot-lsp").setup()
 #_____________________________________________________________ End Copilot
 
 [[plugins]]
-repo = 'vim-denops/denops.vim'
-hook_source = '''
-let g:denops#server#deno_args = [
-  \    '-q',
-  \    '-A',
-  \    '--unstable-kv',
-  \]
-'''
-
-[[plugins]]
 repo = 'skk-dev/dict'
 
 [[plugins]]
-repo = 'great-cactus/skkeleton'
-rev = 'feature/llm-zenz'
-depends = ['denops.vim', 'dict']
-denops_wait = false
-on_map = { ictn = '<Plug>(skkeleton-'}
-hook_add = '''
-inoremap <C-j>  <Plug>(skkeleton-toggle)
-cnoremap <C-j>  <Plug>(skkeleton-toggle)
-tnoremap <C-j>  <Plug>(skkeleton-toggle)
-nnoremap <C-j> i<Plug>(skkeleton-enable)
+repo = 'kjuq/skkelua.nvim'
+depends = ['dict']
+# Not on_map: dein's lazy <Plug> map left the command line for insert mode.
+on_event = ['InsertEnter', 'CmdlineEnter', 'TermEnter']
+on_map = { n = '<Plug>(skkelua-' }
+lua_add = '''
+vim.keymap.set({ 'i', 'c', 't' }, '<C-j>', '<Plug>(skkelua-toggle)')
+vim.keymap.set('n', '<C-j>', 'i<Plug>(skkelua-enable)', { remap = true })
 '''
-hook_source = '''
-" eggLikeNewline で pum.vim の候補を確定するために登録する (pum.vim の FAQ より)
-" pum.vim は ddc.vim と一緒に遅延読み込みされるため、未読み込み時は非表示扱いにする
-call skkeleton#register_completion_backend('pum.vim', #{
-  \   complete_info: { -> exists('*pum#visible') && pum#visible()
-  \       ? pum#complete_info(['pum_visible', 'selected'])
-  \       : #{ pum_visible: v:false, selected: -1 } },
-  \   confirm_key: '<Cmd>call pum#map#confirm()',
-  \ })
-
-call skkeleton#config(#{
-  \completionBackend     : 'pum.vim',
-  \globalDictionaries    : ['~/.cache/dein/repos/github.com/skk-dev/dict/SKK-JISYO.L'->expand()],
-  \databasePath          : '~/.cache/skk/skkeleton.db'->expand(),
-  \completionRankFile    : '~/.skk/rank.json'->expand(),
-  \sources               : ['deno_kv', 'google_japanese_input'],
-  \registerConvertResult : v:true,
-  \eggLikeNewline        : v:true,
-  \llmEnabled            : v:true,
-  \llmProvider           : 'zenz',
-  \llmEndpoint           : 'http://localhost:8081',
-  \llmTimeoutMs          : 1000,
-  \llmFallbackEnabled    : v:true,
-  \llmFallbackTimeoutMs  : 500,
-  \llmModel              : '',
-  \llmContextLines       : 5,
-  \llmRerankMaxCandidates: 5,
-  \})
-
-autocmd MyAutoCmd User skkeleton-enable-pre call s:skkeleton_pre()
-function! s:skkeleton_pre() abort
-  " Overwrite sources
-  let s:prev_buffer_config = ddc#custom#get_buffer()
-  call ddc#custom#patch_buffer({
-  \    'sources'      : ['around', 'skkeleton'],
-  \    'sourceOptions':{
-  \        '_' : {
-  \            'keywordPattern': '[ァ-ヮア-ンー]+',
-  \              },
-  \                    },
-  \})
-endfunction
-
-autocmd MyAutoCmd User skkeleton-disable-pre call s:skkeleton_post()
-function! s:skkeleton_post() abort
-  if 's:prev_buffer_config'->exists()
-    " Restore sources
-    call ddc#custom#set_buffer(s:prev_buffer_config)
-  endif
-endfunction
-
-call skkeleton#initialize()
-'''
-
-[[plugins]]
-repo = 'delphinus/skkeleton_indicator.nvim'
-on_source = 'skkeleton'
 lua_source = '''
-require('skkeleton_indicator').setup{}
+require('plugins.skk').setup()
 '''
-
-#_____________________________________________________________ Start ddc
-[[plugins]]
-repo = 'Shougo/ddc.vim'
-on_event = 'InsertEnter'
-depends = ['denops.vim']
-hook_source = '''
-    call ddc#custom#patch_global('ui', 'pum')
-    call ddc#custom#patch_global('sources', [
-    \                                        'lsp',
-    \                                        'file',
-    \                                        'around',
-    \                                        'buffer',
-    \                                        'rg',
-    \                                        'dictionary',
-    \                                        ])
-    call ddc#custom#patch_global('sourceOptions', {
-    \   '_'        : {
-    \       'matchers'              : ['matcher_fuzzy'],
-    \       'sorters'               : ['sorter_fuzzy'],
-    \       'converters'            : ['converter_fuzzy'],
-    \                },
-    \  'lsp' : {
-    \       'isVolatile'            : v:true,
-    \       'mark'                  : '[LSP]',
-    \       'forceCompletionPattern': '\.|:|->|"\w+/*'
-    \                },
-    \  'around'    : {
-    \       'mark'                  : '[Around]'
-    \                },
-    \  'buffer'    : {
-    \       'mark'                  : '[Buf]'
-    \                },
-    \  'rg'    : {
-    \       'mark'                  : '[ripgrep]'
-    \                },
-    \  'dictionary': {
-    \       'mark'                  : '[Dict]'
-    \                },
-    \  'file'      : {
-    \       'mark'                  : '[File]',
-    \       'isVolatile'            : v:true,
-    \       'forceCompletionPattern': '\S/\S*'
-    \                },
-    \ })
-
-    call ddc#custom#patch_global('sourceParams', {
-    \  'dictionary': {
-    \       'dictPaths'             : ['/usr/share/dict/american-english'],
-    \       'smartCase'             : v:true,
-    \       'showMenu'              : v:false,
-    \                },
-    \  'lsp' : {
-    \       'snippetEngine': denops#callback#register({
-    \           body -> luasnip#anonymous(body)
-    \       }),
-    \       'enableResolveItem': v:true,
-    \       'enableAdditionalTextEdit': v:true,
-    \       'confirmBehavior': 'replace',
-    \     },
-    \ })
-
-    " obsidian.nvim (in-process LSP) completes [[links]] and #tags.
-    " ddc converts 'iskeyword' to ASCII only, so CJK must be added explicitly
-    " for keywordPattern (complete position / filtering) and
-    " '#' / '[' are keywords too so the complete position matches the start of
-    " obsidian-ls textEdit ranges (#tag, [[link) and the whole token is replaced.
-    " forceCompletionPattern (auto trigger regardless of keyword length).
-    " timeout: obsidian-ls answers within 2500ms (plugins/obsidian_completion.lua); ddc default is 2000ms.
-    " hideTimeout: ddc drops a gather slower than this (default 200ms); obsidian-ls
-    " takes 100-400ms on the WSL vault, so its results were silently discarded.
-    call ddc#custom#patch_filetype('markdown', 'sourceOptions', {
-    \   'lsp': {
-    \       'keywordPattern': '[[:keyword:]\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF66-\uFF9F/#\[-]*',
-    \       'forceCompletionPattern': '\.|:|->|"\w+/*|\[\[[^\]]*|#[^\s#]*',
-    \       'timeout': 5000,
-    \       'hideTimeout': 3000,
-    \   },
-    \ })
-
-    call ddc#enable()
-
-    inoremap <silent><expr> <TAB>
-        \ pum#visible() ? '<Cmd>call pum#map#insert_relative(+1)<CR>' :
-        \ (col('.') <= 1 <Bar><Bar> getline('.')[col('.') - 2] =~# '\s') ?
-        \'<TAB>' : ddc#map#manual_complete()
-    inoremap <S-Tab> <Cmd>call pum#map#insert_relative(-1)<CR>
-    inoremap <C-n>   <Cmd>call pum#map#insert_relative(+1)<CR>
-    inoremap <C-p>   <Cmd>call pum#map#insert_relative(-1)<CR>
-    inoremap <C-y>   <Cmd>call pum#map#confirm()<CR>
-    inoremap <C-e>   <Cmd>call pum#map#cancel()<CR>
-'''
-
-[[plugins]]
-repo = 'Shougo/pum.vim'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'Shougo/ddc-ui-pum'
-on_source = 'ddc.vim'
-hook_add = '''
-    call pum#set_option({
-    \            'max_width': 50,
-    \           'max_height': 10,
-    \        'preview_width': 50,
-    \       'preview_height': 10,
-    \ })
-'''
-[[plugins]]
-repo = 'Shougo/ddc-buffer'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'Shougo/ddc-rg'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'tani/ddc-fuzzy'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'Shougo/ddc-around'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'Shougo/ddc-source-around'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'LumaKernel/ddc-file'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'matsui54/ddc-dictionary'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'Shougo/ddc-source-lsp'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'uga-rosa/ddc-source-lsp-setup'
-on_source = 'ddc.vim'
-
-[[plugins]]
-repo = 'g-ctus/ddc-source-luasnip'
-on_source = 'ddc.vim'
-depends = ['ddc-source-lsp-setup']
-lua_post_source = '''
-require("ddc_source_lsp_setup").setup()
-'''
-
-#_____________________________________________________________ End ddc
 
 #_____________________________________________________________ Start treesitter
 [[plugins]]
@@ -667,7 +445,7 @@ xnoremap <silent>ga <Plug>(EasyAlign)
 
 [[plugins]]
 repo = 'easymotion/vim-easymotion'
-on_cmd = '<Plug>(easymotion-)'
+on_map = '<Plug>(easymotion-'
 hook_add = '''
 let g:EasyMotion_do_mapping = 0 "Disable default mappings
 let g:EasyMotion_smartcase = 1 "Turn on case insensitive feature
@@ -760,34 +538,14 @@ vim.keymap.set({"i"}, "<C-K>", function() luasnip.expand() end)
 -- vim.keymap.set({"i", "s"}, "<C-p>", function() luasnip.jump( 1) end)
 -- vim.keymap.set({"i", "s"}, "<C-n>", function() luasnip.jump(-1) end)
 
-vim.keymap.set({"i", "s"}, "<C-E>", function()
+-- Insert-mode <C-e> is config/completion.lua's (closes the popup first).
+vim.keymap.set("s", "<C-E>", function()
   if luasnip.choice_active() then
       luasnip.change_choice(1)
   end
 end)
 '''
 
-hook_post_source = '''
-    call ddc#custom#patch_buffer('sources', ['lsp', 'luasnip'])
-
-    call ddc#custom#patch_buffer('sourceParams', {
-    \  'lsp' : {
-    \       'snippetEngine': denops#callback#register({
-    \           body -> luasnip#anonymous(body)
-    \       }),
-    \       'enableResolveItem': v:true,
-    \       'enableAdditionalTextEdit': v:true,
-    \       'confirmBehavior': 'replace',
-    \     },
-    \ })
-
-    call ddc#custom#patch_buffer('sourceOptions', {
-    \    'luasnip': {
-    \        'mark': '[LS]',
-    \        'dup': v:false,
-    \    },
-    \})
-'''
 [[plugins]]
 repo = 'honza/vim-snippets'
 
@@ -930,10 +688,49 @@ repo = 'obsidian-nvim/obsidian.nvim'
 # (the plugin adds BufRead autocmds), which read the note and ran the
 # BufRead/BufReadPost handlers (loadview, cursor restore, ...) twice.
 on_event = ['BufReadPre', 'BufNewFile']
-on_if = 'expand("%:p") =~# "^" . expand("$OBSIDIAN_PATH") . ".*\\.md$"'
+# Not for the note given on the command line: see lua_add.
+on_if = 'v:vim_did_enter && expand("%:p") =~# "^" . expand("$OBSIDIAN_PATH") . ".*\\.md$"'
 on_map = {n = '<leader>od'}
 # fzf-lua is loaded on demand via its on_lua trigger when the picker is used
 depends = ['plenary.nvim', 'snacks.nvim']
+lua_add = '''
+-- A note opened at startup is shown first and obsidian.nvim is sourced right
+-- after the first redraw: its setup and BufEnter work read the vault on
+-- /mnt/c and more than doubled the time to show the note. It is then
+-- attached to the note by replaying its own FileType/BufEnter autocmds.
+vim.api.nvim_create_autocmd('VimEnter', {
+  once = true,
+  callback = function()
+    vim.schedule(function()
+      local root = vim.fn.expand('$OBSIDIAN_PATH') .. '/'
+      local notes = vim.tbl_filter(function(buf)
+        local name = vim.api.nvim_buf_get_name(buf)
+        return vim.api.nvim_buf_is_loaded(buf) and vim.startswith(name, root) and name:match('%.md$') ~= nil
+      end, vim.api.nvim_list_bufs())
+      if #notes == 0 then
+        return
+      end
+      vim.fn['dein#source']('obsidian.nvim')
+      for _, buf in ipairs(notes) do
+        vim.api.nvim_exec_autocmds('FileType', { group = 'obsidian_setup', buffer = buf, modeline = false })
+      end
+      local cur = vim.api.nvim_get_current_buf()
+      if vim.tbl_contains(notes, cur) then
+        local groups = {}
+        for _, au in ipairs(vim.api.nvim_get_autocmds({ event = 'BufEnter' })) do
+          local name = au.group_name or ''
+          if name == 'obsidian_setup' or name:match('^Obsidian') then
+            groups[au.group] = true
+          end
+        end
+        for group in pairs(groups) do
+          vim.api.nvim_exec_autocmds('BufEnter', { group = group, buffer = cur, modeline = false })
+        end
+      end
+    end)
+  end,
+})
+'''
 lua_source = '''
 require('plugins.obsidian')
 '''
@@ -1079,47 +876,6 @@ let g:splitjoin_python_brackets_on_separate_lines = 1
 hook_add = '''
 nnoremap <silent> <Leader>jj :SplitjoinJoin<cr>
 nnoremap <silent> <Leader>js :SplitjoinSplit<cr>
-'''
-
-[[plugins]]
-repo = 'great-cactus/read-text.vim'
-depends = ['denops.vim']
-on_map = { ictnv = '<Plug>(read-text-' }
-hook_source = '''
-let g:read_text_tts_provider = 'kokoro'
-let g:read_text_audio_command = 'mpv'
-let g:read_text_audio_args = ['--no-video', '--audio-samplerate=48000', '--ao=pulse', '--pulse-buffer=2000', '--pulse-latency-hacks=yes', '--quiet']
-
-let g:read_text_speaker_id = 0
-let g:read_text_speed_scale = 0.8
-let g:read_text_pitch_scale = 0.0
-let g:read_text_split_threshold = 20
-
-let g:read_text_voicevox_url = 'https://hideously-cheerful-swift.ngrok-free.app'
-
-let g:read_text_espeak_voice = 'en'
-let g:read_text_espeak_variant = 'f2'
-let g:read_text_espeak_command = 'espeak-ng'
-
-let g:read_text_melo_language = 'EN'
-let g:read_text_melo_speaker = 'EN-BR'
-let g:read_text_melo_device = 'auto'
-let g:read_text_melo_python = 'python3'
-let g:read_text_speed = 1.0
-
-let g:read_text_kokoro_lang = 'en-gb'
-let g:read_text_kokoro_voice = 'bf_isabella'
-let g:read_text_speed = 1.0
-
-let g:read_text_kokoro_model_path = '~/.local/share/kokoro-tts/kokoro-v1.0.onnx'
-let g:read_text_kokoro_voices_path = '~/.local/share/kokoro-tts/voices-v1.0.bin'
-'''
-hook_add = '''
-nmap <leader>rt <Plug>(read-text-from-cursor-async)
-vmap <leader>rt <Plug>(read-text-selection-async)
-nmap <leader>al <Plug>(read-text-line-async)
-nmap <leader>rp <Plug>(read-text-toggle-pause)
-nmap <leader>rs <Plug>(read-text-stop)
 '''
 
 [[plugins]]
@@ -1513,20 +1269,15 @@ require('plugins.notmuch')
 '''
 #_____________________________________________________________ End notmuch.nvim
 
-#_____________________________________________________________ Kensaku
+#_____________________________________________________________ Start migemo search
 [[plugins]]
-repo = 'lambdalisue/vim-kensaku'
-
-[[plugins]]
-repo = 'lambdalisue/vim-kensaku-search'
-depends = ['vim-kensaku', 'denops.vim']
-on_event = ['CmdlineEnter']
-on_if = 'getcmdtype() ==# "/" && search("[ぁ-んァ-ヶ一-龠々]", "nw") > 0'
-hook_source = '''
-cnoremap <CR> <Plug>(kensaku-search-replace)<CR>
+repo = 'delphinus/luamigemo'
+# Sourced by require('luamigemo') on the first romaji search
+on_lua = 'luamigemo'
+lua_add = '''
+require('config.migemo_search').setup()
 '''
-
-#_____________________________________________________________ Kensaku
+#_____________________________________________________________ End migemo search
 
 #_____________________________________________________________ Start claudecode.nvim
 [[plugins]]

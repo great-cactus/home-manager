@@ -3,7 +3,7 @@
 -- Cause: obsidian.nvim's tag and note sources read and parse every candidate
 -- note with Note.from_file on the main thread (inside rg's stdout callback).
 -- On a WSL /mnt/c (9p) mount one file read costs ~40ms, so a #tag request
--- blocks Neovim for minutes over ~2000 notes and ddc gives up long before.
+-- blocks Neovim for minutes over ~2000 notes.
 --
 --   1. Prevent : a vault index built by ripgrep in child processes
 --                (file names, frontmatter aliases/tags, inline #tags).

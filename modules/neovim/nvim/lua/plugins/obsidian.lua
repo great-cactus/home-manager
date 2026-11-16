@@ -1,4 +1,4 @@
-vim.opt_local.conceallevel = 2
+-- 'conceallevel' (2) is set globally by init.lua after the first redraw.
 
 -- Must precede setup(): workspace/template dirs are resolved during setup
 require("plugins.obsidian_fastpath").setup(vim.fn.expand("$OBSIDIAN_PATH"))
@@ -48,8 +48,13 @@ require("obsidian").setup{
   search = {
     -- rg --sortr=modified runs single-threaded and stats every file.
     -- On a WSL NTFS mount (/mnt/c) that costs ~5s per completion request,
-    -- exceeding ddc's source timeout. Unsorted rg takes <1s.
+    -- far beyond the completion deadline. Unsorted rg takes <1s.
     sort_by = false,
+  },
+  ui = {
+    -- 'conceallevel' is 0 until the first redraw (see init.lua); the warning
+    -- would block that redraw with a hit-enter prompt.
+    ignore_conceal_warn = true,
   },
   footer = {
     enabled = false, -- turn it off
@@ -427,40 +432,6 @@ search.search_async = function(dir, term, opts, on_match, on_exit)
     end
   end)
 end
-
--- >>> ddc-word-fix
--- ddc-source-lsp builds the word it inserts while cycling candidates from
--- insertText (falling back to label); textEdit is only applied on <C-y>.
--- obsidian-ls items carry the text only in textEdit, so Tab inserted the
--- decorated label ("Tag: #PERMANENT"). Derive insertText from textEdit:
--- the newText minus whatever the edit range covers after the cursor (e.g.
--- an auto-paired "]]"), so the inserted word is right even before confirming.
-local function with_insert_text(item, cursor_character)
-  if item.insertText or not item.textEdit then
-    return item
-  end
-  local new_text = item.textEdit.newText
-  local covered_after = item.textEdit.range["end"].character - cursor_character
-  if covered_after > 0 and #new_text > covered_after then
-    new_text = new_text:sub(1, #new_text - covered_after)
-  end
-  return vim.tbl_extend("force", item, { insertText = new_text })
-end
-
-local lsp_handlers = require("obsidian.lsp.handlers")
-local orig_completion = lsp_handlers["textDocument/completion"]
-lsp_handlers["textDocument/completion"] = function(params, callback, ...)
-  return orig_completion(params, function(err, result)
-    if not (result and result.items) then
-      return callback(err, result)
-    end
-    local items = vim.tbl_map(function(item)
-      return with_insert_text(item, params.position.character)
-    end, result.items)
-    return callback(err, vim.tbl_extend("force", result, { items = items }))
-  end, ...)
-end
--- <<< ddc-word-fix
 
 -- Index-backed tag/link sources, response deadline and freeze watchdog
 require("plugins.obsidian_completion").setup()
