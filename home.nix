@@ -32,7 +32,6 @@
     uv
     fzf
     cargo
-    deno
     nodejs_24
     ripgrep
     trash-cli

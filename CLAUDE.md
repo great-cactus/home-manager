@@ -26,6 +26,16 @@ nix flake update
 nix develop
 ```
 
+### Neovim 設定のテスト
+
+```bash
+# *_spec.lua: nvim --clean でリポジトリの Lua を単体テスト
+# *_int.lua : 適用済み（インストール済み）の設定で結合テスト（先に設定を適用すること）
+modules/neovim/tests/run.sh [ファイル名の一部]
+```
+
+新規ファイルは `git add -N` しないと flake に含まれず、適用後の設定から見えない。
+
 ## アーキテクチャ
 
 ### エントリーポイント
@@ -40,7 +50,7 @@ nix develop
 | モジュール | 役割 |
 |---|---|
 | `modules/zsh/` | zsh本体設定・エイリアス・カスタム関数 |
-| `modules/neovim/` | Neovim設定（dein.vim + Lua config + LSP + スニペット） |
+| `modules/neovim/` | Neovim設定（dein.vim + Lua config + LSP + スニペット）。denops 非依存：補完はネイティブ（`config/completion.lua`）、SKK は skkelua.nvim + zenz 並べ替え（`plugins/skk*.lua`）、ローマ字検索は luamigemo（`config/migemo_search.lua`）、読み上げは `plugins/read_text/` |
 | `modules/mail/` | メール設定（notmuch + mbsync + msmtp + pass + GPG） |
 | `modules/claude/` | `~/.claude/settings.json`（宣言的生成）・`rules/`・`skills/` の管理 |
 | `modules/wezterm/` | WezTerm設定。WSL環境では `home.activation` でWindows側（`/mnt/c/Users/<user>/.config/wezterm/`）にコピー |

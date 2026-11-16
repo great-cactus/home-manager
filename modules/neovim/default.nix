@@ -30,7 +30,16 @@ let
     (n: v: v == "regular" && lib.hasSuffix ".lua" n)
     (builtins.readDir ./nvim/lua/config);
 
-  ddcDictPath = "${pkgs.scowl}/share/dict/wamerican.txt";
+  # English word list for insert completion ('dictionary', config/completion.lua)
+  wordListPath = "${pkgs.scowl}/share/dict/wamerican.txt";
+
+  # migemo dictionary for romaji search (config/migemo_search.lua): the
+  # SKK-JISYO-based one vim-kensaku used; luamigemo's bundled one is smaller
+  # (no 日本語 for "nihongo")
+  migemoDict = pkgs.fetchurl {
+    url    = "https://github.com/oguna/migemo-compact-dict-latest/releases/download/v0.2/migemo-compact-dict";
+    sha256 = "06ls5sm87xnxnlmxq55g0573g5qn5knhv4a0rlpj529mnd0c4fps";
+  };
 
   # OALD (Oxford Advanced Learner's Dictionary) StarDict形式
   # sdcv で英英辞書として使用する
@@ -103,10 +112,9 @@ in {
     # dein プラグイン定義（~/.cache/dein/ ではなく ~/.config/nvim/dein/ に置く）
     # → dein のステートキャッシュ（~/.cache/dein/）と分離する
     "nvim/dein/dein.toml".source      = ./dein.toml;
-    "nvim/dein/dein_lazy.toml".text = builtins.replaceStrings
-      [ "/usr/share/dict/american-english" ]
-      [ ddcDictPath ]
-      (builtins.readFile ./dein_lazy.toml);
+    "nvim/dein/dein_lazy.toml".source = ./dein_lazy.toml;
+    "nvim/dict/words.txt".source      = wordListPath;
+    "nvim/dict/migemo-compact-dict".source = migemoDict;
 
     # ディレクトリ単位でリンク
     "nvim/colors".source    = ./nvim/colors;

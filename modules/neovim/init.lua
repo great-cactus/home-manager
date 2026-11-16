@@ -137,8 +137,24 @@ vim.opt.wildmode       = 'list:longest'
 vim.opt.list           = true
 vim.opt.listchars      = { tab = '^ ', trail = '~' }
 vim.opt.cmdheight      = 0
-vim.opt.conceallevel   = 2
-vim.opt.completeopt    = 'menuone'
+-- 'conceallevel' starts at 0 and becomes 2 right after the first redraw:
+-- with conceal on, the tree-sitter highlighter parses markdown once per
+-- screen line to find concealed lines (conceal_lines), which made opening a
+-- note about 2x slower. Only windows still at the startup value change.
+vim.opt.conceallevel   = 0
+vim.api.nvim_create_autocmd('VimEnter', {
+  once = true,
+  callback = function()
+    vim.schedule(function()
+      vim.go.conceallevel = 2
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        if vim.wo[win].conceallevel == 0 then
+          vim.wo[win].conceallevel = 2
+        end
+      end
+    end)
+  end,
+})
 vim.opt.autochdir      = true
 vim.opt.laststatus     = 0
 vim.opt.statusline     = "%{repeat('─',winwidth('.'))}"
@@ -451,6 +467,31 @@ require('config.smart_scroll').setup({
   cursor_pos  = 0.25,
 })
 require('config.dict').setup()
+require('config.completion').setup()
+
+-- Read aloud (plugins/read_text, Lua port of read-text.vim)
+require('plugins.read_text').setup({
+  tts_provider = 'kokoro',
+  audio_command = 'mpv',
+  audio_args = { '--no-video', '--audio-samplerate=48000', '--ao=pulse', '--pulse-buffer=2000', '--pulse-latency-hacks=yes', '--quiet' },
+  split_threshold = 20,
+  speed = 1.0,
+  voicevox_url = 'https://hideously-cheerful-swift.ngrok-free.app',
+  espeak_voice = 'en',
+  espeak_variant = 'f2',
+  espeak_command = 'espeak-ng',
+  melo_language = 'EN',
+  melo_speaker = 'EN-BR',
+  kokoro_lang = 'en-gb',
+  kokoro_voice = 'bf_isabella',
+  kokoro_model_path = '~/.local/share/kokoro-tts/kokoro-v1.0.onnx',
+  kokoro_voices_path = '~/.local/share/kokoro-tts/voices-v1.0.bin',
+})
+vim.keymap.set('n', '<leader>rt', '<Plug>(read-text-from-cursor-async)')
+vim.keymap.set('x', '<leader>rt', '<Plug>(read-text-selection-async)')
+vim.keymap.set('n', '<leader>al', '<Plug>(read-text-line-async)')
+vim.keymap.set('n', '<leader>rp', '<Plug>(read-text-toggle-pause)')
+vim.keymap.set('n', '<leader>rs', '<Plug>(read-text-stop)')
 require('config.one_sentence_per_line').setup()
 require('config.comma_period').setup()
 require('config.runner').setup({
