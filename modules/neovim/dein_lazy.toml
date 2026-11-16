@@ -32,25 +32,27 @@ merged = '0'
 repo = 'ibhagwan/fzf-lua'
 # depends = ['fzf', 'nvim-web-devicons', 'chafa', 'viu', 'ueberzugpp']
 depends = ['fzf', 'nvim-web-devicons', 'viu', 'ueberzugpp']
-# Also sourced on require('fzf-lua'), so obsidian.nvim's picker need not
-# pull it in when a note is opened.
+# Sourced on require('fzf-lua'): by the keymaps below, and by obsidian.nvim's
+# picker without pulling it in when a note is opened.
+# The keymaps are real mappings set at startup instead of on_map: dein's
+# on_map dummy runs ':call ...', which fires CmdlineEnter and loads noice ->
+# fzf-lua first; dein then sees nothing left to source and unmaps the real
+# mapping of the key just pressed, so that key stopped working for good.
 on_lua = 'fzf-lua'
-on_map = {n = [
-    '<leader>ff',
-    '<leader>fg',
-    '<leader>fG',
-    '<leader>fb',
-    '<leader>fh',
-    '<leader>fr',
-]}
+lua_add = '''
+for lhs, picker in pairs({
+  ff = 'files',
+  fg = 'git_files',
+  fG = 'git_status',
+  fb = 'buffers',
+  fh = 'oldfiles',
+  fr = 'live_grep',
+}) do
+  vim.keymap.set('n', '<leader>' .. lhs, function() require('fzf-lua')[picker]() end)
+end
+'''
 lua_source = '''
 local fzf = require('fzf-lua')
-vim.keymap.set('n', '<leader>ff', fzf.files)
-vim.keymap.set('n', '<leader>fg', fzf.git_files)
-vim.keymap.set('n', '<leader>fG', fzf.git_status)
-vim.keymap.set('n', '<leader>fb', fzf.buffers)
-vim.keymap.set('n', '<leader>fh', fzf.oldfiles)
-vim.keymap.set('n', '<leader>fr', fzf.live_grep)
 
 fzf.setup({
   winopts = {
