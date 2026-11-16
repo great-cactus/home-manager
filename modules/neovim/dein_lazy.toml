@@ -32,6 +32,9 @@ merged = '0'
 repo = 'ibhagwan/fzf-lua'
 # depends = ['fzf', 'nvim-web-devicons', 'chafa', 'viu', 'ueberzugpp']
 depends = ['fzf', 'nvim-web-devicons', 'viu', 'ueberzugpp']
+# Also sourced on require('fzf-lua'), so obsidian.nvim's picker need not
+# pull it in when a note is opened.
+on_lua = 'fzf-lua'
 on_map = {n = [
     '<leader>ff',
     '<leader>fg',
@@ -196,18 +199,22 @@ nnoremap <silent> <leader>md <Plug>MarkdownPreview
 [[plugins]]
 repo = 'gaoDean/autolist.nvim'
 on_ft = 'markdown'
-lua_source = '''
-require('autolist').setup()
+# The keymap autocmd lives in lua_add (startup), not lua_source: registering a
+# FileType autocmd while dein sources an on_ft plugin makes dein re-fire
+# FileType for the buffer, which ran every markdown FileType handler twice.
+lua_add = '''
 vim.api.nvim_create_autocmd('FileType', {
   pattern = 'markdown',
-  callback = function()
-    local buf = vim.api.nvim_get_current_buf()
-    local opts = { buffer = buf }
+  callback = function(args)
+    local opts = { buffer = args.buf }
     vim.keymap.set('i', '<CR>', '<CR><Cmd>AutolistNewBullet<CR>', opts)
     vim.keymap.set('n', 'o', 'o<Cmd>AutolistNewBullet<CR>', opts)
     vim.keymap.set('n', 'O', 'O<Cmd>AutolistNewBulletBefore<CR>', opts)
   end,
 })
+'''
+lua_source = '''
+require('autolist').setup()
 '''
 
 [[plugins]]
@@ -482,7 +489,9 @@ require("ddc_source_lsp_setup").setup()
 [[plugins]]
 repo = '~/.cache/dein/_generated/nvim-treesitter'
 merged = '0'
-on_event = 'BufReadPost'
+# BufReadPre, not later: parsers and queries live in this plugin's runtimepath
+# and must be visible when init.lua's FileType handler starts tree-sitter.
+on_event = ['BufReadPre', 'BufNewFile']
 lua_source = '''
 -- Nix管理のパーサディレクトリをinstall_dirとして登録する
 -- これによりnvim-treesitterのget_installed()がパーサを認識できる
@@ -527,7 +536,9 @@ require'treesitter-context'.setup{
 
 [[plugins]]
 repo = 'neovim/nvim-lspconfig'
-on_event = ['BufReadPre', 'BufNewFile']
+# Sourced after the first redraw; lua/lsp/init.lua schedules vim.lsp.enable(),
+# which then attaches the already-open buffers itself.
+very_lazy = 1
 merged = '0'
 lua_source = '''
 -- LSP keymaps via LspAttach autocmd
@@ -913,10 +924,14 @@ end
 #_____________________________________________________________ Start Obsidian
 [[plugins]]
 repo = 'obsidian-nvim/obsidian.nvim'
-on_event = ['BufRead', 'BufNewFile']
+# BufReadPre, not BufRead: dein re-fires the triggering event after sourcing
+# (the plugin adds BufRead autocmds), which read the note and ran the
+# BufRead/BufReadPost handlers (loadview, cursor restore, ...) twice.
+on_event = ['BufReadPre', 'BufNewFile']
 on_if = 'expand("%:p") =~# "^" . expand("$OBSIDIAN_PATH") . ".*\\.md$"'
 on_map = {n = '<leader>od'}
-depends = ['plenary.nvim', 'fzf-lua', 'snacks.nvim']
+# fzf-lua is loaded on demand via its on_lua trigger when the picker is used
+depends = ['plenary.nvim', 'snacks.nvim']
 lua_source = '''
 require('plugins.obsidian')
 '''
@@ -1136,7 +1151,7 @@ require('autoclose').setup({
 
 [[plugins]]
 repo = 'lewis6991/gitsigns.nvim'
-on_event = 'BufReadPost'
+very_lazy = 1  # sourced after the first redraw; setup() attaches open buffers
 lua_source = '''
 local highlight_state = 0  -- 0=none, 1=word_diff, 2=linehl
 
@@ -1219,7 +1234,7 @@ vim.api.nvim_create_autocmd('ColorScheme', {
 [[plugins]]
 repo = 'lukas-reineke/indent-blankline.nvim'
 merged = '0'
-on_event = 'BufReadPost'
+very_lazy = 1  # sourced after the first redraw; setup() refreshes open windows
 lua_source = '''
 vim.api.nvim_set_hl(0, 'IblIndent', { fg = '#c8c8c8', nocombine = true })
 vim.api.nvim_set_hl(0, 'IblScope', { fg = '#a0a0a0', nocombine = true })
@@ -1281,7 +1296,7 @@ repo = 'kevinhwang91/promise-async'
 [[plugins]]
 repo = 'kevinhwang91/nvim-ufo'
 depends = 'promise-async'
-on_event = 'BufRead'
+very_lazy = 1  # sourced after the first redraw (see init.lua)
 lua_source = '''
 vim.o.foldcolumn = '1'
 vim.o.foldlevel = 99
@@ -1345,6 +1360,10 @@ require('ufo').setup({
 vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
 vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
 
+-- ufo attaches on BufWinEnter only; cover the buffers shown before it loaded
+for _, win in ipairs(vim.api.nvim_list_wins()) do
+  pcall(require('ufo').attach, vim.api.nvim_win_get_buf(win))
+end
 '''
 
 #_____________________________________________________________ Start OutlineEdit Mode
@@ -1361,7 +1380,7 @@ require('plugins.outline_edit')
 repo = 'b0o/incline.nvim'
 depends = ['nvim-web-devicons']
 merged = '0'
-on_event = 'BufReadPost'
+very_lazy = 1  # sourced after the first redraw; setup() renders open windows
 lua_source = '''
 require('incline').setup({
   window = {

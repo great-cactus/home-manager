@@ -1,4 +1,8 @@
 vim.opt_local.conceallevel = 2
+
+-- Must precede setup(): workspace/template dirs are resolved during setup
+require("plugins.obsidian_fastpath").setup(vim.fn.expand("$OBSIDIAN_PATH"))
+
 require("obsidian").setup{
   notes_subdir = "Output",
   log_level = vim.log.levels.INFO,

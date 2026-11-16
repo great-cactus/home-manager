@@ -17,4 +17,9 @@ for file, ftype in vim.fs.dir(dirname) do
   end
 end
 
-vim.lsp.enable(lsp_names)
+-- Deferred one tick: this module is sourced by the very_lazy stage in
+-- init.lua while FileType events are ignored, and vim.lsp.enable() attaches
+-- the already-open buffers by firing its own FileType autocmd.
+vim.schedule(function()
+  vim.lsp.enable(lsp_names)
+end)

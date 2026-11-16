@@ -62,6 +62,8 @@ end
 
 function M.start_terminal()
   terminal_job = vim.fn.termopen(vim.o.shell, {
+    -- init.lua strips Windows dirs from Neovim's own PATH; shells get them back
+    env = { PATH = vim.g.host_path or vim.env.PATH },
     on_exit = function()
       terminal_job = nil
     end

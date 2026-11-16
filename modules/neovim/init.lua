@@ -6,6 +6,19 @@ vim.g.fortran_free_source = 0
 -- MyAutoCmd: referenced by some plugin ftplugin scripts (e.g. markdown.vim)
 vim.api.nvim_create_augroup('MyAutoCmd', { clear = true })
 
+-- PATH: drop Windows directories appended by WSL interop (/mnt/c/...).
+-- A missed executable()/exepath() lookup walks the whole PATH, and each stat
+-- on a DrvFs mount costs 1-10 ms, so plugin probes for optional tools (there
+-- are dozens at startup) made opening a file take seconds. Child terminals
+-- get the full PATH back (see config/terminal.lua).
+vim.g.host_path = vim.env.PATH
+if vim.fn.has('wsl') == 1 then
+  local dirs = vim.split(vim.env.PATH or '', ':', { plain = true })
+  vim.env.PATH = table.concat(vim.tbl_filter(function(dir)
+    return not dir:match('^/mnt/%a/')
+  end, dirs), ':')
+end
+
 -- Plugin manager (dein)
 -- インストーラ (dein-installer.vim) の構造に従う:
 --   dein.vim は ~/.cache/dein/repos/github.com/Shougo/dein.vim に配置
@@ -30,8 +43,46 @@ if vim.fn['dein#check_install']() ~= 0 then
   vim.fn['dein#install']()
 end
 
+-- Deferred plugins: entries marked `very_lazy = 1` in dein_lazy.toml (UI
+-- decorations) are sourced one event-loop tick after VimEnter, i.e. after
+-- the first redraw, so they never delay showing the first file.
+-- Each of them attaches to the already-open buffers on setup, so FileType is
+-- ignored while sourcing: dein otherwise re-fires FileType for the current
+-- buffer whenever a sourced plugin added FileType autocmds, which re-ran
+-- every ftplugin/LSP/obsidian handler.
+vim.api.nvim_create_autocmd('VimEnter', {
+  once = true,
+  callback = function()
+    vim.schedule(function()
+      local names = {}
+      for name, plugin in pairs(vim.fn['dein#get']()) do
+        if plugin.very_lazy == 1 and plugin.sourced == 0 then
+          names[#names + 1] = name
+        end
+      end
+      table.sort(names)
+      -- One plugin per tick so pending input is handled in between
+      local function source_next(i)
+        local name = names[i]
+        if not name then
+          return
+        end
+        local saved = vim.o.eventignore
+        vim.opt.eventignore:append('FileType')
+        local ok, err = pcall(vim.fn['dein#source'], { name })
+        vim.o.eventignore = saved
+        if not ok then
+          vim.notify('very_lazy: ' .. name .. ': ' .. tostring(err), vim.log.levels.ERROR)
+        end
+        vim.schedule(function() source_next(i + 1) end)
+      end
+      source_next(1)
+    end)
+  end,
+})
+
 vim.cmd('filetype indent plugin on')
-vim.cmd('syntax enable')
+-- `syntax enable` is issued after the tree-sitter FileType autocmd below.
 
 -- Disable unused built-in plugins
 vim.g.did_install_default_menus = 1
@@ -329,16 +380,59 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'ColorScheme' }, {
 require('config.bigfile').setup()
 
 -- Tree-sitter: native highlight and fold (nvim 0.12 built-in)
+-- Registered before `syntax enable` so it runs ahead of the `syntaxset`
+-- FileType autocmd: a buffer marked as tree-sitter highlighted makes
+-- $VIMRUNTIME/syntax/syntax.vim skip the regex syntax load, which is slow
+-- (syntax/tex.vim ~90 ms) and redundant.
+-- The start itself is deferred past the first redraw: compiling a highlights
+-- query takes up to ~300 ms (LaTeX) and would otherwise delay showing the file.
+local function ts_lang_for(buf, ft)
+  local lang = vim.treesitter.language.get_lang(ft)
+  if vim.b[buf].large_file or not lang then
+    return nil
+  end
+  -- language.add() returns nil (no error) when no parser is on the runtimepath
+  if not vim.treesitter.language.add(lang) then
+    return nil
+  end
+  return lang
+end
+
+local function ts_start_deferred(buf, ft, lang)
+  if not vim.api.nvim_buf_is_valid(buf) or vim.bo[buf].filetype ~= ft then
+    return
+  end
+  -- ftplugin/markdown.lua already started it; restarting would reload syntax
+  if not vim.treesitter.highlighter.active[buf] and not pcall(vim.treesitter.start, buf, lang) then
+    vim.b[buf].ts_highlight = nil
+    vim.bo[buf].syntax = ft  -- fall back to regex syntax
+    return
+  end
+  -- Set treesitter foldexpr per window (not globally, to avoid cost on
+  -- terminal/bigfile/no-parser buffers)
+  for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+    vim.wo[win][0].foldmethod = 'expr'
+    vim.wo[win][0].foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+  end
+end
+
 vim.api.nvim_create_autocmd('FileType', {
+  group = ag('TreesitterStart', { clear = true }),
   callback = function(args)
-    pcall(vim.treesitter.start, args.buf)
-    -- Set treesitter foldexpr per-buffer (not globally, to avoid cost on
-    -- terminal/bigfile/no-parser buffers)
-    vim.wo[0].foldmethod = 'expr'
-    vim.wo[0].foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+    local buf, ft = args.buf, args.match
+    local lang = ts_lang_for(buf, ft)
+    if not lang then
+      if not vim.treesitter.highlighter.active[buf] then
+        vim.b[buf].ts_highlight = nil
+      end
+      return
+    end
+    vim.b[buf].ts_highlight = true
+    vim.schedule(function() ts_start_deferred(buf, ft, lang) end)
   end,
 })
 vim.opt.foldenable = false
+vim.cmd('syntax enable')
 
 -- Colorscheme (standalone, no plugin dependency)
 vim.opt.background = 'light'
