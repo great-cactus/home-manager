@@ -88,6 +88,12 @@ in {
       force = true;
     };
 
+    # blink.cmp（補完）: Rust 製 fuzzy matcher をビルド済みで同梱した nixpkgs 版を使う
+    ".cache/dein/_generated/blink.cmp" = {
+      source = pkgs.vimPlugins.blink-cmp;
+      force = true;
+    };
+
     # dein.vim をインストーラが期待するパスに配置（読み取り専用でよい）
     ".cache/dein/repos/github.com/Shougo/dein.vim" = {
       source = dein-vim-src;

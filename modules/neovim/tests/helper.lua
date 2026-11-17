@@ -8,6 +8,8 @@ local H = {}
 local repo = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p:h:h')
 H.repo = repo
 H.dein = vim.fn.expand('~/.cache/dein/repos/github.com')
+-- blink.cmp comes from nixpkgs; BLINK_CMP points at it before the config is applied
+H.blink = vim.env.BLINK_CMP or vim.fn.expand('~/.cache/dein/_generated/blink.cmp')
 
 local tests = {}
 local only = vim.env.TEST_ONLY
@@ -47,35 +49,32 @@ function H.ok(cond, msg)
   end
 end
 
--- Popup items that match the typed text (what is displayed)
+-- Builtin popup items that match the typed text (skkelua's candidates)
 function H.matches()
   return vim.fn.complete_info({ 'matches' }).matches or {}
 end
 
--- Index of the first displayed item with this word/menu, for
--- nvim_select_popupmenu_item()
-function H.index_of(word, menu)
-  for i, it in ipairs(H.matches()) do
-    if (word == nil or it.word == word) and (menu == nil or it.menu == menu) then
-      return i - 1
-    end
+-- blink.cmp menu: "label source" of every listed item, best first
+function H.menu()
+  if not require('blink.cmp').is_menu_visible() then
+    return {}
   end
-end
-
--- "word menu" of every displayed item
-function H.items()
   return vim.tbl_map(function(it)
-    return it.menu ~= '' and (it.word .. ' ' .. it.menu) or it.word
-  end, H.matches())
+    return it.label .. ' ' .. it.source_id
+  end, require('blink.cmp.completion.list').items)
 end
 
-function H.has_item(word, menu)
-  for _, it in ipairs(H.matches()) do
-    if it.word == word and (menu == nil or it.menu == menu) then
-      return true
+function H.in_menu(label, source)
+  return vim.tbl_contains(H.menu(), label .. ' ' .. source)
+end
+
+-- 1-based rank of the item in the blink.cmp menu
+function H.rank(label, source)
+  for i, entry in ipairs(H.menu()) do
+    if entry == label .. ' ' .. source then
+      return i
     end
   end
-  return false
 end
 
 function H.line()

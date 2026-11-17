@@ -470,7 +470,7 @@ require('config.smart_scroll').setup({
   cursor_pos  = 0.25,
 })
 require('config.dict').setup()
-require('config.completion').setup()
+-- config.completion (blink.cmp) is set up by dein on InsertEnter/CmdlineEnter/TermEnter
 
 -- Read aloud (plugins/read_text, Lua port of read-text.vim)
 require('plugins.read_text').setup({

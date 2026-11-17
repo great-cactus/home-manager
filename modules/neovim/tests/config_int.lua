@@ -37,12 +37,71 @@ H.test('conceallevel is 2 once the first redraw is done', {
   end,
 })
 
-H.test('native completion is configured', {
+H.test('blink.cmp is set up on InsertEnter with the Rust matcher', {
   function()
-    H.eq(require('config.completion').sources, vim.o.complete)
-    H.ok(vim.o.autocomplete, 'autocomplete')
+    H.fresh({ '' })
+    H.feed('i', 'nt')
+    return 300
+  end,
+  function()
+    H.feed('<Esc>', 'nt')
+    H.ok(package.loaded['blink.cmp'], 'blink.cmp loaded')
+    H.eq('rust', require('blink.cmp.fuzzy').implementation_type)
+    H.eq(false, vim.o.autocomplete, 'builtin autocomplete is off')
     H.eq(1, vim.fn.filereadable(vim.o.dictionary), 'dictionary ' .. vim.o.dictionary)
     H.ok(vim.fn.readfile(vim.o.dictionary, '', 1)[1] ~= nil, 'dictionary is not empty')
+  end,
+})
+
+H.test('blink.cmp: buffer words in the menu', {
+  function()
+    H.fresh({ 'blinkword', '' })
+    H.feed('Ablin')
+    return 500
+  end,
+  function()
+    H.ok(H.in_menu('blinkword', 'buffer'), vim.inspect(H.menu()))
+    H.feed('<C-e><Esc>', 'nt')
+  end,
+})
+
+H.test('blink.cmp: terminal words while typing a command', {
+  function()
+    vim.cmd('enew! | terminal')
+    vim.cmd.startinsert()
+    return 1000
+  end,
+  function()
+    H.feed('echo blinkterminalword<CR>')
+    return 1000
+  end,
+  function()
+    H.feed('blinkt')
+    return 800
+  end,
+  function()
+    local menu = H.menu()
+    H.feed('<C-u><C-\\><C-n>', 'nt')
+    vim.cmd('bwipeout!')
+    H.ok(vim.tbl_contains(menu, 'blinkterminalword buffer'), vim.inspect(menu))
+  end,
+})
+
+H.test('blink.cmp: cmdline completion on <Tab>', {
+  function()
+    H.fresh({ '' })
+    -- ':' and ';' are swapped in normal mode
+    H.feed(';echo<Tab>')
+    return 500
+  end,
+  function()
+    local menu = H.menu()
+    H.feed('<C-u><Esc>', 'nt')
+    H.ok(vim.tbl_contains(menu, 'echo cmdline') or vim.tbl_contains(menu, 'echoerr cmdline'), vim.inspect(menu))
+  end,
+  function()
+    -- the next tests :edit files; the modified scratch buffer would block them
+    vim.cmd('enew!')
   end,
 })
 
@@ -66,7 +125,7 @@ H.test('python: lsp items after a trigger character', {
     return 3000
   end,
   function()
-    H.ok(H.has_item('path'), vim.inspect(H.items()))
+    H.ok(H.in_menu('path', 'lsp'), vim.inspect(H.menu()))
   end,
 })
 
@@ -81,7 +140,7 @@ H.test('python: LuaSnip snippets are offered after InsertEnter', {
     return 500
   end,
   function()
-    H.ok(H.has_item('ifmain', '[LS]'), vim.inspect(H.items()))
+    H.ok(H.in_menu('ifmain', 'snippets'), vim.inspect(H.menu()))
     H.feed('<Esc>', 'nt')
   end,
 })
@@ -101,14 +160,19 @@ H.test('obsidian: [[ offers vault notes', {
     return 8000
   end,
   function()
-    H.feed('ggA[[Dash')
+    -- as typed: blink.cmp misses keys queued with the InsertEnter that loads it
+    H.feed('ggA')
+    return 300
+  end,
+  function()
+    H.feed('[[Dash')
     return 3000
   end,
   function()
-    local found = vim.iter(H.matches()):any(function(it)
-      return it.word:find('Dashboard', 1, true) ~= nil
+    local found = vim.iter(H.menu()):any(function(entry)
+      return entry:find('Dashboard', 1, true) ~= nil
     end)
-    H.ok(found, vim.inspect(H.items()))
+    H.ok(found, vim.inspect(H.menu()))
     H.feed('<C-e><Esc>', 'nt')
   end,
   function()
@@ -157,7 +221,7 @@ H.test('skkelua: popup off while SKK is on', {
   end,
   function()
     H.ok(require('skkelua').is_enabled(), 'SKK on')
-    H.eq(false, vim.bo.autocomplete, 'autocomplete off in SKK')
+    H.eq(false, require('config.completion').enabled(), 'blink.cmp off in SKK')
     H.feed('ka')
     return 200
   end,
@@ -168,7 +232,7 @@ H.test('skkelua: popup off while SKK is on', {
   end,
   function()
     H.ok(not require('skkelua').is_enabled(), 'SKK off')
-    H.eq(true, vim.bo.autocomplete, 'autocomplete back after SKK')
+    H.eq(true, require('config.completion').enabled(), 'blink.cmp back after SKK')
     H.feed('<Esc>', 'nt')
   end,
 })

@@ -26,15 +26,19 @@ function M.setup()
     eggLikeNewline = true,
   })
 
-  -- The word popup of 'autocomplete' would fight the pre-edit; skkelua's
-  -- own candidates still come through its in-process LSP.
+  -- The blink.cmp menu would fight the pre-edit (config.completion checks
+  -- b:completion_disabled); skkelua's own candidates still come through its
+  -- in-process LSP and the builtin popup.
   local group = vim.api.nvim_create_augroup('SkkCompletion', { clear = true })
   vim.api.nvim_create_autocmd('User', {
     group = group,
     pattern = 'skkelua-enable-pre',
     callback = function()
       vim.b.completion_disabled = true
-      vim.bo.autocomplete = false
+      local blink = package.loaded['blink.cmp']
+      if blink then
+        blink.hide()
+      end
     end,
   })
   vim.api.nvim_create_autocmd('User', {
@@ -42,7 +46,6 @@ function M.setup()
     pattern = 'skkelua-disable-post',
     callback = function()
       vim.b.completion_disabled = nil
-      vim.bo.autocomplete = vim.bo.buftype == ''
     end,
   })
 end

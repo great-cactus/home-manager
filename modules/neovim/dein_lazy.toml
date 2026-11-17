@@ -547,6 +547,16 @@ end)
 '''
 
 [[plugins]]
+# Nix-provided (see default.nix); the fuzzy matcher library is prebuilt
+repo = '~/.cache/dein/_generated/blink.cmp'
+merged = '0'
+depends = ['LuaSnip']
+on_event = ['InsertEnter', 'CmdlineEnter', 'TermEnter']
+lua_source = '''
+require('config.completion').setup()
+'''
+
+[[plugins]]
 repo = 'honza/vim-snippets'
 
 [[plugins]]
