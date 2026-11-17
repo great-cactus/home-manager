@@ -1,3 +1,6 @@
+-- Cache Lua module lookups and bytecode; must precede the first require()
+vim.loader.enable()
+
 -- Leader / global vars
 vim.g.mapleader        = ' '
 vim.g.tex_flavor       = 'latex'
