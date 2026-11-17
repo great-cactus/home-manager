@@ -50,7 +50,7 @@ modules/neovim/tests/run.sh [ファイル名の一部]
 | モジュール | 役割 |
 |---|---|
 | `modules/zsh/` | zsh本体設定・エイリアス・カスタム関数 |
-| `modules/neovim/` | Neovim設定（dein.vim + Lua config + LSP + スニペット）。denops 非依存：補完はネイティブ（`config/completion.lua`）、SKK は skkelua.nvim + zenz 並べ替え（`plugins/skk*.lua`）、ローマ字検索は luamigemo（`config/migemo_search.lua`）、読み上げは `plugins/read_text/` |
+| `modules/neovim/` | Neovim設定（dein.vim + Lua config + LSP + スニペット）。denops 非依存：補完は blink.cmp（nixpkgs 版を `~/.cache/dein/_generated/` に配置、設定と自作ソースは `config/completion*.lua`。挿入・コマンドライン・ターミナルの全モード）、SKK は skkelua.nvim + zenz 並べ替え（`plugins/skk*.lua`）、ローマ字検索は luamigemo（`config/migemo_search.lua`）、読み上げは `plugins/read_text/` |
 | `modules/mail/` | メール設定（notmuch + mbsync + msmtp + pass + GPG） |
 | `modules/claude/` | `~/.claude/settings.json`（宣言的生成）・`rules/`・`skills/` の管理 |
 | `modules/wezterm/` | WezTerm設定。WSL環境では `home.activation` でWindows側（`/mnt/c/Users/<user>/.config/wezterm/`）にコピー |
